@@ -1,0 +1,203 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+	function enviarNovoArquivo(){
+		$(this).defaultPrevented;
+		console.log('Enviado arquivo');
+		
+		if(document.getElementById('formRAnexos').elements['RAnexosArquivoNovo'].value != ""
+			&& 	document.getElementById('formRAnexos').elements['RAnexosNomeArquivo'].value != ""
+		){
+			var formData = new FormData($('#formRAnexos')[0]);
+			$.ajax({
+				type: "POST",
+				url: "{% url 'ranexos:anexar' %}",
+				enctype: "multipart/form-data",
+				data: formData,
+				cache: false,
+		        contentType: false,
+		        processData: false,
+		        async: false,
+		        success: function(data) {
+					//alert(data);
+					if (data['message']){
+						alert(data['message']);
+					}
+					
+					if (data['iditem']){
+						reloadAnexo(data['nomeitem'],data['iditem'],data['linkitem']);
+					}
+				 },
+				 error: function(jqXHR, textStatus, errorMessage) {
+			          console.log(errorMessage + " - " + textStatus + " - " + jqXHR); // Optional
+				     }
+				});
+		}else{
+			alert("Selecione um arquivo e coloque um nome para o mesmo por favor.");
+		}
+		return false;
+	}
+	
+	function reloadAnexo(nome, id, link){
+		html = '<tr id="itemConf' + id + '>' +
+	     '<td><a href="/static/' + link + '">' + nome + '</a></td>' +
+	     '<td>' +
+			'<a onclick="habilitarDesabilitar(' + id + ');" title="Despublicar"><i style="color: black;" class="fa fa-eye-slash fa-2x"></i> </a>' +
+			'<a onclick="excluir(' + id + ');" title="Excluir"><i style="color: red;" class="fa fa-trash-o fa-2x"></i> </a>' +
+	     '</td>' +
+	   '</tr>';	
+		$('#itensAnexo').after(html);
+		
+		html2 = '<tr id="itemPreview' + id + '">' +
+	    	'<td><a href="/static/' + link + '">' + nome + '</a></td>' +
+		'</tr>';
+		
+		$('#itensPreview').after(html2);
+	}
+	
+	function classReload(id){
+		if(document.getElementById("btnHabDesa" + id).className == "fa fa-eye-slash fa-2x"){
+			$('#btnHabDesa' + id).removeClass("fa-eye-slash").addClass('fa-eye');
+			$('#itemPreview' + id).hide();
+		}else{
+			$('#btnHabDesa' + id).removeClass("fa-eye").addClass('fa-eye-slash');
+			$('#itemPreview' + id).show();
+		}	
+	}
+	
+	function habilitarDesabilitar(id){
+		$(this).defaultPrevented;
+		console.log('Enviado comando');
+
+			$.ajax({
+				type: "GET",
+				url: "/ranexos/" + id +"/habilitar_desabilitar/",
+				cache: false,
+		        contentType: false,
+		        processData: false,
+		        async: false,
+		        success: function(data) {
+					//alert(data);
+					classReload(id);
+				 },
+				 error: function(jqXHR, textStatus, errorMessage) {
+			          console.log(errorMessage + " - " + textStatus + " - " + jqXHR); // Optional
+				     }
+				});
+		return false;
+	}
+	
+	function excluir(id){
+		$(this).defaultPrevented;
+		console.log('Enviado comando');
+
+			$.ajax({
+				type: "GET",
+				url: "/ranexos/" + id +"/excluir/",
+				cache: false,
+		        contentType: false,
+		        processData: false,
+		        async: false,
+		        success: function(data) {
+					//alert(data);
+					console.log('Apagando');
+					$('#itemPreview' + id).remove();
+		        	$('#itemConf' + id).remove();
+				 },
+				 error: function(jqXHR, textStatus, errorMessage) {
+			          console.log(errorMessage + " - " + textStatus + " - " + jqXHR); // Optional
+				     }
+				});
+		return false;
+	}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de anexação de arquivos
+{% endblock %}
+
+{% block recurso %}
+<div class="row panel radius">
+{% if RAnexosDados %}
+	<table width="100%" style="max-height: 200px; overflow: auto;">
+	 <thead>
+	   <tr>
+	     <th width="100%">Nome</th>
+	   </tr>
+	 </thead>
+	 <tbody id="itensPreview">
+	   {% for anexo in RAnexosDados %}
+	   {% if anexo.publicado %}
+	   <tr id="itemPreview{{anexo.id}}"> 
+	     <td><a href="{% static anexo.anexo %}">{{anexo.nome}}</a></td>
+	   </tr>
+	   {% else %}
+	   <tr id="itemPreview{{anexo.id}}"> 
+	     <td><a style="display: none;" href="{% static anexo.anexo %}">{{anexo.nome}}</a></td>
+	   </tr>
+	   {% endif %}
+	   {% endfor %}
+	  </tbody>
+	</table>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block configuracao %}
+<form class="row" id="RAnexos" name="RAnexos" method="post">{% csrf_token %}
+	<label> Envie um arquivo agora:
+		<input class="button" type="button" value="Enviar Novo arquivo" data-reveal-id="novoArquivo">
+	</label>
+</form>
+
+<!-- Reveal Modals -->
+<div id="novoArquivo" class="reveal-modal" data-reveal aria-labelledby="modalTitleArquivo" aria-hidden="true" role="dialog">
+  <h2 id="modalTitleArquivo">Enviando um novo arquivo</h2>
+  <p class="lead">Basta selecionar um arquivo diretamente de seu computador e dar um nome.</p>
+  <form name="formRAnexos" id="formRAnexos" enctype="multipart/form-data" method="post" action="{% url 'ranexos:anexar' %}">
+  	  {% csrf_token %}
+  	  <input type="hidden" name="RAnexosRecursoID" value="{{recurso.id}}">
+	  <label> Nome para o arquivo:
+	  	<input type="text" name="RAnexosNomeArquivo" placeholder="Insira um nome para o arquivo..">
+	  	
+	  </label>
+	  <label> Selecione um arquivo de seu computador:
+	  	<input type="file" name="RAnexosArquivoNovo">
+	  </label>
+	  <input type="button" onclick="enviarNovoArquivo();" class="button" value="Enviar">
+  </form>
+  <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+</div>
+{% endblock %}
+
+{% block dados %}
+Seus itens:
+{% if RAnexosDados %}
+<table width="100%">
+ <thead>
+   <tr>
+     <th width="80%">Nome</th>
+     <th width="20%">Operações</th>
+   </tr>
+ </thead>
+ <tbody id="itensAnexo">
+   {% for anexo in RAnexosDados %}
+   <tr id="itemConf{{anexo.id}}">
+     <td><a href="{% static anexo.anexo %}">{{anexo.nome}}</a></td>
+     <td>
+     	{% if anexo.publicado %}
+			<a onclick="habilitarDesabilitar({{anexo.id}});" title="Despublicar"><i id="btnHabDesa{{anexo.id}}" style="color: black;" class="fa fa-eye-slash fa-2x"></i> </a>
+		{% else %}
+			<a onclick="habilitarDesabilitar({{anexo.id}});" title="Publicar"><i id="btnHabDesa{{anexo.id}}" style="color: black;" class="fa fa-eye fa-2x"></i></a>
+		{% endif %}
+		<a onclick="excluir({{anexo.id}});" title="Excluir"><i style="color: red;" class="fa fa-trash-o fa-2x"></i> </a>
+     </td>
+   </tr>
+   {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

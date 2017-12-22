@@ -1,0 +1,258 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %} 
+<script type="text/javascript">
+//Função que passa as letras e palavras digitadas para o tradutor
+// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+function palavra_formatada2() {
+	// Obrigamos o usuário a digitar palavras
+	$('#slugInput').val($('#slugInput').val().replace(' ', ''));
+	$('#palavra').val($('#slugInput').val());
+	// Removemos acentos e opotuações indesejadas para montar o SLUG
+	$('#slug').val(
+			retira_acentos(
+					$('#slugInput').val()
+					.replace('.', '')
+					.replace('?', '')
+			).toLowerCase()
+	);
+}
+
+// Postar Video para o servidor
+function postVideoToServer() {
+	//indicadores de envio, barra de status
+	$('.meter').css( "width", "10%" );
+	$('.metertext').html("10%");
+	
+	// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+	var formData = new FormData($('#formGravacaoVideo')[0]);
+	try{
+		formData.append('video', window.audioVideoRecorder.getBlob());
+	}catch(err){
+		alert("Grave um video! Para isso clique no botão gravar!");
+		return false;
+	}
+	//indicadores de envio, barra de status
+	$('.meter').css( "width", "30%" );
+	$('.metertext').html("30%");
+    
+	//Enviamos nosso objeto
+	
+    $.ajax({
+    	type: "POST",
+		url: "{% url 'rcaptura:salvarVideo' %}",
+		enctype: "multipart/form-data",
+		data: formData,
+		cache: false,
+        contentType: false,
+        processData: false,
+        async: false,
+		success: function(data) {
+			//indicadores de envio, barra de status
+			$('.meter').css( "width", "60%" );
+			$('.metertext').html("60%");
+			onUploadSuccess(data);
+             //$('#teste_request').html(data);
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log(errorMessage + " - " + textStatus); // Optional
+	     }
+	});
+	return false;
+}
+
+function onUploadSuccess(data) {
+	//indicadores de envio, barra de status
+	$('.meter').css( "width", "80%" );
+	$('.metertext').html("80%");
+	if(data.erro_message){
+		alert(data.erro_message);
+	}else{
+		//indicadores de envio, barra de status
+		$('.meter').css( "width", "100%" );
+		$('.metertext').html("100%");
+		if(data.palavra_pk){
+			var palavra_pk = data.palavra_pk; //validamos a palavra existente
+		}
+	}
+}
+
+function criarGrupo(){
+	$(this).defaultPrevented;
+	console.log('Criando grupo');
+	
+	if(document.getElementById('formRCapturaGrupo').elements['grupoNomeInput'].value != ""){
+		var formData = new FormData($('#formRCapturaGrupo')[0]);
+		$.ajax({
+			type: "POST",
+			url: "{% url 'rcaptura:grupo_palavra' %}",
+			enctype: "multipart/form-data",
+			data: formData,
+			cache: false,
+	        contentType: false,
+	        processData: false,
+	        async: false,
+	        success: function(data) {
+				//alert(data);
+				if (data['aceito'] == 'criado'){
+					//alimentamos nossas caixas de seleção
+					$("#RCapturagrupo").append(
+							$('<option></option>').attr("value", data['grupo_pk']).text(data['nome'])
+							);
+					$("#RCapturagrupo").val(data['grupo_pk']);
+					$("#CRCapturagrupo").append(
+							$('<option></option>').attr("value", data['grupo_pk']).text(data['nome'])
+							);
+					$("#CRCapturagrupo").val(data['grupo_pk']);
+					alert("Criado!");
+					
+				}
+			 },
+			 error: function(jqXHR, textStatus, errorMessage) {
+		          console.log(errorMessage + " - " + textStatus + " - " + jqXHR); // Optional
+			     }
+			});
+	}else{
+		alert("Insira um nome para o grupo por favor.");
+	}
+	return false;
+}
+</script>
+
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Captura de video
+{% endblock %}
+
+{% block recurso %}
+<!-- Utilizamos a tecnologia RTC da Mozilla -->
+<script type="text/javascript" src="{% static 'js/recordRTC.js' %}"></script>
+<div class="row">
+	<h4>Gravação de sinais LIBRAS</h4>
+	<p>Necessitará de uma câmera para gravar. 
+	Download do video aparecerá aqui:<span id="download-url"></span></p>
+	<div class="row">
+		<div class="large-4 columns">
+			<video class="gravacao" width="240" height="180" autoplay="autoplay"
+				loop="loop" id="capturaTela"> Your browser does not support
+				the video tag.
+			</video>
+		</div>
+		<form class="large-8 columns" id="formGravacaoVideo">
+		{% csrf_token %}
+			<div class="row">
+				<div class="large-4 columns">
+					<input name="RCrecursoid" type="hidden" value="{{recurso.id}}">
+					<label> Palavra<input id="slugInput" name="RCapturaslugInput" 
+					type="text" value="" onkeyup="palavra_formatada2();" />
+					</label>
+					<input id="palavra" name="RCapturapalavra" type="hidden" value="" />
+					<input id="slug" name="RCapturaslug" type="hidden" value="" />
+				</div>
+				<div class="large-4 columns">
+					<label>Grupo <select name="RCapturagrupo" id="RCapturagrupo">
+							{% for grupo in Dgrupos %}
+							<option value="{{grupo.id}}">{{grupo.nome}}</option>
+							{% endfor %}
+					</select>
+					</label>
+				</div>
+				<div class="large-4 columns">
+					<label>Imagem <input id="RCapturaimagem" name="RCapturaimagem" type="file"
+						accept="image/*">
+						<input name="video" type="file" style="display: none;">
+					</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-12 columns">
+					<ul class="button-group even-2">
+						<li><a  id="start-recording" class="button"><i
+								class="fa fa-video-camera fa-2"></i> Iniciar</a></li>
+						<li><a id="stop-recording"
+								class="button secondary alert">
+								<i class="fa fa-stop fa-2"></i> Parar
+							</a></li>
+					</ul>
+				</div>
+			</div>
+		</form>
+		<div class="row">
+			<div class="large-8 columns">
+				<div class="progress success radius round">
+					<span class="meter" style="width: 1%"></span>
+				</div>
+			</div>
+			<div class="large-1 columns metertext">1%</div>
+			<div class="large-3 columns">
+				<a id="botaoSalvarVideo" onclick="postVideoToServer();" 
+				class="button tiny expand">Enviar</a>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Nossa definições para a captura de video desta página -->
+<script type="text/javascript" src="{% static 'js/captura.js' %}"></script>
+{% endblock %}
+
+{% block configuracao %}
+<form id="RCaptura" name="RCaptura">{% csrf_token %}
+<div class="row">
+	<div class=" large-6 columns">
+		<label>
+			Grupos para envio
+			<select name="CRCapturagrupo" id="CRCapturagrupo">
+				<option value="0" {% ifequal configs.2.CRCapturagrupo '0' %} selected="selected" {% endifequal %}> Todos </option>
+				{% for grupo in Dgrupos %}
+				<option value="{{grupo.id}}" {% ifequal configs.2.CRCapturagrupo grupo.id|slugify %} selected="selected" {% endifequal %}>{{grupo.nome}}</option>
+				{% endfor %}
+			</select>
+		</label>
+		<a class="button expand" style="color: white;" href="#" data-reveal-id="myModal">Criar Novo Grupo</a>
+	</div>
+	<div class=" large-6 columns">
+		<label>
+			Lista de Palavras a serem gravas
+			<input type="text" value="{{configs.2.CRCapturalistaPalavras }}" placeholder="EX: limão, goiaba, ferro...." name="CRCapturalistaPalavras">
+		</label>
+	</div>
+</div>
+<div class="row">
+	<div class=" large-12 columns">
+		<label> Comportamentos<br>
+			{% if configs.2.CRCapturaComportamentosPublico == 'on' %}
+			<input name="CRCapturaComportamentosPublico" type="checkbox" {% if configs.2.CRCapturaComportamentosPublico == 'on' %} checked="checked" {% endif %}> Mostra todas os envios aos alunos<br>
+			{% else %}
+			<input name="CRCapturaComportamentosPublico" type="checkbox"> Mostra todas os envios aos alunos<br>
+			{% endif %}
+			
+			{% if configs.2.CRCapturaComportamentosLivre == 'on' %}
+			<input name="CRCapturaComportamentosLivre" type="checkbox" {% if configs.2.CRCapturaComportamentosLivre == 'on' %} checked="checked" {% endif %}> Gravação Livre (Rejeita a lsita de palavras)<br>
+			{% else %}
+			<input name="CRCapturaComportamentosLivre" type="checkbox"> Gravação Livre (Rejeita a lsita de palavras)<br>
+			{% endif %}
+		</label>
+	</div>
+</div>
+</form>
+
+<!-- Reveal Modals -->
+<div id="myModal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+  <h2 id="modalTitle">Criando um novo GRUPO de palavras</h2>
+  <p class="lead">Basta dar um nome para um novo grupo de palavras de sua escolha.</p>
+  <form name="formRCapturaGrupo" id="formRCapturaGrupo">
+  	  {% csrf_token %}
+	  <label> Nome para o novo grupo
+	  	<input type="text" value="" name="grupoNomeInput" placeholder="Insira um nome para o grupo" maxlength="45">
+	  </label>
+	  <input type="button" onclick="criarGrupo();" class="button" value="Criar Novo grupo">
+  </form>
+  <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+</div>
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

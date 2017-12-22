@@ -1,0 +1,66 @@
+{% load staticfiles %}
+
+{% block scripts %}
+
+{% endblock %}
+
+<div class="row ">
+	<div class="large-12 columns">
+	{% if config != '' %}
+	<div style="background: #ccc; padding: 1px; border: 1px dashed #007AA2; margin: 2px">
+	
+	<h3>
+	{% block recursonome %}
+	
+	{% endblock %}
+	</h3>
+	</div>
+	<div id="{{recurso.id}}">
+		<div>
+			{% block recurso %}
+				
+			{% endblock %}
+		</div>
+		<div>
+			  {% block dados %}
+				
+			  {% endblock %}
+		</div>
+	</div>
+	{% else %}
+	<div data-alert class="alert-box alert radius">
+		Aguarde a Ap ser configurada pelo professor!. Volte par o PAINEL, <a href="/painel">clique aqui!</a>
+		<a href="#" class="close">&times;</a>
+	</div>
+	{% endif %}
+	</div>
+	<script type="text/javascript">
+		
+		window.onload = function(){
+			try{
+				$('.NextSeta').prop("disabled",false);
+				$('.PreviousSeta').prop("disabled",false);
+			}catch(e){
+				console.log('buttons nest previous off');
+			}
+			
+			try{
+				startAppDatilologia();
+			}catch(e){
+				console.log('Datilologia off');
+			}
+			
+			try{
+				startAppInterpretador();
+			}catch(e){
+				console.log('Interpretador off');
+			}
+			
+			try{
+				startAppHTML();
+			}catch(e){
+				console.log('HTML off');
+			}
+		};
+	</script>
+</div>

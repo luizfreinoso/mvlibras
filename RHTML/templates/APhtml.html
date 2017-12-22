@@ -1,0 +1,25 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+
+{% endblock %}
+
+{% block recursonome %}
+	Conteúdo Customizado
+{% endblock %}
+
+{% block recurso %}
+<div>
+	{% for dado in dadosAP %}
+		{{dado.value|safe}}
+	<hr>
+	<span style="float: left;">{{dado.user.username}}</span>
+	<span style="float: right;">{{dado.data_ultima_modificacao}}</span>
+	{% endfor %}
+</div>
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

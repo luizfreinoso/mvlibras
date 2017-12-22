@@ -1,0 +1,182 @@
+{% extends 'base.html' %} 
+{% load staticfiles %}
+
+{% block title %} Criando uma nova Arquitetura
+Pedagógica {% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<style type="text/css">
+	#sortable { list-style-type: none; margin: 0; padding: 0; }
+  	#sortable li { margin: 0 1px 1px 1px;}
+  	.right-move{float: right; margin-right: 2px;}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type="text/javascript">
+//$(function() {
+  //$( "#sortable" ).sortable();
+  //$( "#sortable" ).disableSelection();
+  
+//});
+</script>
+{% endblock %}
+
+{% block conteudo %}
+<div class="row panel">
+	{% csrf_token %}
+	<h3>{{ap.nome}}</h3>
+	<details>{{ap.descricao}}</details><br>
+	<h4>Recursos:</h4>
+	<b>Você pode alterar a ordem dos recursos e suas configurações.</b><br>
+	<div id="sortable">
+		{% for recurso in recursos %}
+			{% if recurso.recurso == 1 %}
+				<!-- Recurso de busca -->
+				{% include "busca.html" %}
+			{% endif %}
+			{% if recurso.recurso == 2 %}
+				<!-- Recurso de Captura -->
+				{% include "captura.html" %}
+			{% endif %}
+			{% if recurso.recurso == 3 %}
+				<!-- Recurso de datilologia -->
+				{% include "datilologia.html" %}
+			{% endif %}
+			{% if recurso.recurso == 4 %}
+				<!-- Recurso de interpretação de texto para sinal -->
+				{% include "interpretador.html" %}
+			{% endif %}
+			{% if recurso.recurso == 5 %}
+				<!-- Recurso de anexação de arquivos -->
+				{% include "anexos.html" %}
+			{% endif %}
+			{% if recurso.recurso == 6 %}
+				<!-- Recurso de edição HTML -->
+				{% include "html.html" %}
+			{% endif %}
+			{% if recurso.recurso == 7 %}
+				<!-- Recurso de anexação de arquivos -->
+				{% include "capturaLonga.html" %}
+			{% endif %}
+			{% if recurso.recurso == 8 %}
+				<!-- Recurso de interpretação e tradução -->
+				{% include "datilologiaVisual.html" %}
+			{% endif %}
+		{% endfor %}
+	</div>
+	<div class="row">
+		<div class="large-6 columns">
+			<button onclick="verificaForm();" type="submit" class="expand">Salvar Modificações</button>
+		</div>
+		<div class="large-6 columns">
+			<button type="reset" class="expand">Resetar Campos</button>
+		</div>
+	</div>
+</div>
+<script>
+var GLobalMessagem = '';
+function verificaForm(){
+	//formData = new FormData($('#Rbusca')[0]);
+	
+	if($('#Rbusca')[0]){
+		idRecurso = $('#accordion1').data('idrl');
+		ordem = $('#recursoordem1').val();
+		postAPToServer(idRecurso, '#Rbusca', ordem);
+	}
+	if($('#RCaptura')[0]){
+		idRecurso = $('#accordion2').data('idrl');
+		ordem = $('#recursoordem2').val();
+		postAPToServer(idRecurso, '#RCaptura', ordem);
+	}
+	if($('#RDatilologia')[0]){
+		idRecurso = $('#accordion3').data('idrl');
+		ordem = $('#recursoordem3').val();
+		postAPToServer(idRecurso, '#RDatilologia', ordem);
+	}
+	if($('#RInterpretador')[0]){
+		idRecurso = $('#accordion4').data('idrl');
+		ordem = $('#recursoordem4').val();
+		postAPToServer(idRecurso, '#RInterpretador', ordem);
+	}
+	if($('#RHTML')[0]){
+		idRecurso = $('#accordion6').data('idrl');
+		ordem = $('#recursoordem6').val();
+		postAPToServer(idRecurso, '#RHTML', ordem);
+	}
+	if($('#RCapturaLonga')[0]){
+		idRecurso = $('#accordion7').data('idrl');
+		ordem = $('#recursoordem7').val();
+		postAPToServer(idRecurso, '#RCapturaLonga', ordem);
+	}
+	if($('#RDatilologiaVisual')[0]){
+		idRecurso = $('#accordion8').data('idrl');
+		ordem = $('#recursoordem8').val();
+		postAPToServer(idRecurso, '#RDatilologiaVisual', ordem);
+	}
+	
+	alert(GLobalMessagem);
+	
+	GLobalMessagem = '';
+}
+
+function postAPToServer(recurso, nome, ordem) {
+	// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+	var formData = new FormData($(nome)[0]);
+	//Enviamos nosso objeto
+		
+    $.ajax({
+    	type: "POST",
+		url: "/aps/" + recurso + "/" + ordem + "/salvarConfiguracaoAP/",
+		enctype: "multipart/form-data",
+		data: formData,
+		cache: false,
+        contentType: false,
+        processData: false,
+        async: false,
+		success: function(data) {
+			GLobalMessagem += 'Modificações do recurso ' + nome + ' salvas!\n';
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log(errorMessage + " - " + textStatus); // Optional
+	     }
+	});
+	return false;
+}
+</script>
+{% block joyride %}
+<ol class="joyride-list" data-joyride>
+	<li data-id="ap" data-text="Próximo" data-prev-text="Anterior"
+		data-options="tip_location: bottom">
+		<h4>Arquiteturas Pedagógicas</h4>
+		<p>Esse é nosso painel de tecnologias digitais que visam atender
+			as arquiteturas pedagógicas propostas.</p>
+	</li>
+	<li data-id="span" data-class="custom so-awesome" data-text="Próximo"
+		data-prev-text="Anterior">
+		<h4>Ajuda</h4>
+		<p>Para saber o que você irá trabalhar dentro de cada Arquitetura
+			Pedagógica (AP), basta clicar ou colocar o cursor sob este icone!</p>
+	</li>
+	<li data-id="atividade" data-button="Próximo" data-prev-text="Anterior"
+		data-options="tip_location:bottom; tip_animation:fade">
+		<h4>Atividade</h4>
+		<p>Para usar um recurso de uma AP clique no botão e boa aula!</p>
+	</li>
+	<!-- 
+  <li data-id="feed" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>FEED</h4>
+    <p>Novidades do mundo! Esse módulo é ajustavel, basta você acessar seu DASHBOARD!</p>
+  </li>
+  -->
+	<li data-button="Fim">
+		<h4>AJUDA</h4>
+		<p>
+			Utilize o botão <span class="fa fa-question-circle fa-2x"></span>
+			sempre que estiver em uma página nova e que tenha dúvidas!
+		</p>
+	</li>
+</ol>
+{% endblock %} {% endblock %}

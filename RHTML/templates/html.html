@@ -1,0 +1,42 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+	/**
+		Conversosr de portugês para DATILOLOGIA
+		Fonte utilizada: Libras_Kidmais01.tft
+	**/
+	function startAppHTML(){
+		$('#RHTMLTexto').keyup(function(){
+		      var keyed = $(this).val();
+		      $("#RHTMLView").html(keyed);
+		 });
+	}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de inserção de conteúdo HTML
+{% endblock %}
+
+{% block recurso %}
+<div class="row panel radius">
+	<div id="RHTMLView">
+		{% for dado in RHTMLDados %}{{dado.value|safe}}{% endfor %}
+	</div>
+</div>
+{% endblock %}
+
+{% block configuracao %}
+{{RHTMLDados.value}}
+<form class="row" id="RHTML" name="RHTML" method="post">{% csrf_token %}
+	<label> Redija um Texto em HTML:
+		<textarea name="RHTMLTexto" id="RHTMLTexto" rows="10" width="100%">{% for dado in RHTMLDados %}{{dado.value}}{% endfor %}</textarea>
+	</label>
+</form>
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

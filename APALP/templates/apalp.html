@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block css %}
+<style type="text/css">
+	
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+	//IFrameON overload
+	function iFrameOn(){
+		
+	}
+
+	// Função que passa as letras e palavras digitadas para o tradutor
+	// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+	function palavra_formatada() {
+		// Obrigamos o usuário a digitar palavras
+		$('#palavraDigitada').val($('#palavraDigitada').val().replace(' ', ''));
+		// Removemos acentos e opotuações indesejadas para montar o SLUG
+		$('#slugInput').val(
+				retira_acentos(
+						$('#palavraDigitada').val()
+						.replace('.', '')
+						.replace('?', '')
+				).toLowerCase()
+		);
+		$('#palavra').val($('#palavraDigitada').val());
+		$('#slug').val($('#slugInput').val());
+	}
+	
+	// Postar Video para o servidor
+	function postVideoToServer() {
+		//indicadores de envio, barra de status
+		$('.meter').css( "width", "10%" );
+		$('.metertext').html("10%");
+		
+		// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+		var formData = new FormData($('#formGravacaoVideo')[0]);
+		try{
+			formData.append('video', window.audioVideoRecorder.getBlob());
+		}catch(err){
+			alert("Grave um video! Para isso clique no botão gravar!");
+			return false;
+		}
+		//indicadores de envio, barra de status
+		$('.meter').css( "width", "30%" );
+		$('.metertext').html("30%");
+	    
+		//Enviamos nosso objeto
+		
+	    $.ajax({
+	    	type: "POST",
+			url: "{% url 'apalp:salvarVideo' %}",
+			enctype: "multipart/form-data",
+			data: formData,
+			cache: false,
+	        contentType: false,
+	        processData: false,
+	        async: false,
+			success: function(data) {
+				//indicadores de envio, barra de status
+				$('.meter').css( "width", "60%" );
+				$('.metertext').html("60%");
+				onUploadSuccess(data);
+	             //$('#teste_request').html(data);
+			 },
+			 error: function(jqXHR, textStatus, errorMessage) {
+		          console.log(errorMessage + " - " + textStatus); // Optional
+		     }
+		});
+		return false;
+	}
+
+	function onUploadSuccess(data) {
+		//indicadores de envio, barra de status
+		$('.meter').css( "width", "80%" );
+		$('.metertext').html("80%");
+		if(data.erro_message){
+			alert(data.erro_message);
+		}else{
+			//indicadores de envio, barra de status
+			$('.meter').css( "width", "100%" );
+			$('.metertext').html("100%");
+			if(data.palavra_pk){
+				var palavra_pk = data.palavra_pk; //validamos a palavra existente
+			}
+		}
+	}
+	
+	//ao digitar nosso usuário irá buscar palavras
+	function buscarPalavras(){
+		// acima de 3 caracters fazemos a busca na base
+		// usamos o identificardor SLUG para oter todas as palavras similares
+		if($('#slugInput').val().length > 3){
+			$.ajax({
+		    	type: "GET",
+				url: '/apalp/' + $('#slugInput').val() + '/buscarPalavra/',
+				//url: '/mvlibras/apalp/' + $('#slugInput').val() + '/buscarPalavra/',
+				data: {},
+				cache: false,
+		        contentType: false,
+		        processData: false,
+		        async: false,
+				success: function(data) {
+					if(data['mensagem']){
+						$('#itemsBusca')[0].innerHTML = data['mensagem'];
+					}
+					if(data.caminhos){
+						$('#itemsBusca')[0].innerHTML = "";
+						for(var i =0; i < data.caminhos.length; i++){
+							$('#itemsBusca')[0].innerHTML += 
+								'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+									'<source src="{% static '' %}' + data.caminhos[i].caminho + '" type="video/webm">' +
+								'</video>';
+						}
+					}
+				 },
+				 error: function(jqXHR, textStatus, errorMessage) {
+					 console.log(errorMessage + " - " + textStatus); // Optional
+			     }
+			});
+		}
+		return false;
+	}
+</script>
+<!-- Utilizamos a tecnologia RTC da Mozilla -->
+<script type="text/javascript" src="{% static 'js/recordRTC.js' %}"></script>
+{% endblock %}
+
+{% block conteudo %}
+<div class="row">
+	<h2>APALP</h2>
+	<details>
+	<span id="span" data-tooltip aria-haspopup="true" 
+		class="has-tip" title="Aqui iremos aprender gesticulação em LIBRAS de palavras em Portugûes.">
+		<i class="fa fa-info-circle"></i>
+	</span>
+	Arquitetura pedagógica para Aprendizagem de LIBRAS e Português
+	</details>
+	<br><br>
+</div>
+<div class="row panel radius">
+	<form enctype="multipart/form-data" method="post" id="encontrarPalavra" class="large-4 columns">
+	{% csrf_token %}
+		<h4>Encontrar palavras</h4>
+		<label>Palavra
+			<input onkeyup="palavra_formatada();buscarPalavras();" value="" type="text" 
+			id="palavraDigitada" placeholder="Entre com uma palavra....">
+		</label>
+	</form>
+	<div id="itemsBusca" class="large-8 columns itemsBusca" style="border: 1px solid #ccc; height: 100%">
+		Digite uma palavra, você poderá grava-la ou encontrar sinais correspondentes!
+	</div>
+</div>
+<div class="row panel radius">
+	<h4>Gravação de sinais LIBRAS</h4>
+	<p>Necessitará de uma câmera para gravar. 
+	Download do video aparecerá aqui:<span id="download-url"></span></p>
+	<div class="row">
+		<div class="large-4 columns">
+			<video class="gravacao" width="240" height="180" autoplay="autoplay"
+				loop="loop" id="capturaTela"> Your browser does not support
+				the video tag.
+			</video>
+		</div>
+		<form enctype="multipart/form-data" method="post" id="formGravacaoVideo" class="large-8 columns">
+			{% csrf_token %}
+			<div class="row">
+				<div class="large-4 columns">
+					<label> Nome do arquivo<input id="slugInput" name="slugInput" type="text" value="" disabled="disabled" />
+					</label>
+					<input id="palavra" name="palavra" type="hidden" value="" />
+					<input id="slug" name="slug" type="hidden" value="" />
+				</div>
+				<div class="large-4 columns">
+					<label>Grupo <select name="grupo" id="grupo">
+							{% for grupo in grupos %}
+							<option value="{{grupo.id}}">{{grupo.nome}}</option>
+							{% endfor %}
+					</select>
+					</label>
+				</div>
+				<div class="large-4 columns">
+					<label>Selecione uma imagem <input id="imagem" name="imagem" type="file"
+						accept="image/*">
+						<input name="video" type="file" style="display: none;">
+					</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-12 columns">
+					<ul class="button-group even-2">
+						<li><a  id="start-recording" class="button"><i
+								class="fa fa-video-camera fa-2"></i> Iniciar</a></li>
+						<li><a id="stop-recording"
+								class="button secondary alert">
+								<i class="fa fa-stop fa-2"></i> Parar
+							</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-8 columns">
+					<div class="progress success radius round">
+						<span class="meter" style="width: 1%"></span>
+					</div>
+				</div>
+				<div class="large-1 columns metertext">1%</div>
+				<div class="large-3 columns">
+					<a id="botaoSalvarVideo" onclick="postVideoToServer();" 
+					class="button tiny expand">Enviar</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<!-- Nossa definições para a captura de video desta página -->
+<script type="text/javascript" src="{% static 'js/captura.js' %}"></script>
+<br><br>
+
+{% block joyride %} 
+<ol class="joyride-list" data-joyride>
+  <li data-id="palavraDigitada" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: bottom">
+    <h4>Navegar no dicionário</h4>
+    <p>Aqui você pode buscar uma palavra e conferir se a mesma existe no sistema.</p>
+    <p>Caso ela ainda não exista no sistema e você a conhece, por favor grave para seus colegas!</p>
+  </li>
+  <li data-id="itemsBusca" data-class="custom so-awesome" data-text="Próximo" data-prev-text="Anterior" data-prev-text="Anterior">
+    <h4>Resultado da busca</h4>
+    <p>Todas as palavras correspondentes aparecerão aqui!</p>
+  </li>
+  <li data-id="slugInput" data-class="custom so-awesome" data-text="Próximo" data-prev-text="Anterior" data-prev-text="Anterior">
+    <h4>Gravando um sinal Libras</h4>
+    <p>Para Gravar um sinal, você verá uma reorientação de sua palavra digitada (que será o nome do arquivo).</p>
+  </li>
+  <li data-id="grupo" data-class="custom so-awesome" data-text="Próximo" data-prev-text="Anterior" data-prev-text="Anterior">
+    <h4>Grupo</h4>
+    <p>Em nosso sistema as palavras pertencem a grupos, como por exemplo FRUTAS, 
+    neste grupo teriamos banana, pera, maçã etc, ou seja, o nome do grupo define 
+    o contexto de nossas palavras a serem gravadas.</p>
+  </li>
+  <li data-id="imagem" data-class="custom so-awesome" data-text="Próximo" data-prev-text="Anterior" data-prev-text="Anterior">
+    <h4>Imagem para o sinal</h4>
+    <p>Muitas palavras podem ser pouco conhecidas ou mesmo dee sentido próprio do usuário. 
+    Envie junto a seu sinal uma imgem para ajudar os colegas a entenderem o mesmo. (Ação não obrigatória)</p>
+  </li>
+  <li data-id="start-recording" data-class="custom so-awesome" data-text="Próximo" data-prev-text="Anterior" data-prev-text="Anterior">
+    <h4>Iniciar Gravação</h4>
+    <p>Depois de conferir os dados anteriores, ajeite-se e clique neste botão para gravar!</p>
+    <p>Você tem cerca de 3 segundos para gravar um sinal! 
+    Caso aconteça de errar, não se preocupe basta clicar novamente até ficar satisfeito!</p>
+  </li>
+  <li data-id="botaoSalvarVideo" data-class="custom so-awesome" data-prev-text="Anterior" data-text="Próximo" data-prev-text="Anterior">
+    <h4>Salvar Gravação</h4>
+    <p>Agora com tudo feito, basta enviar seu video para o sistema!!</p>
+  </li>
+  <li data-id="download-url" data-class="custom so-awesome" data-prev-text="Anterior" data-text="Fim" data-prev-text="Anterior">
+    <h4>Salvar no meu computador</h4>
+    <p>Você ainda pode salvar uma cópia para você, a mesma aparecerá aqui!</p>
+  </li>
+</ol>
+{% endblock %}
+
+{% endblock %}

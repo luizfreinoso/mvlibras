@@ -1,0 +1,197 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %} 
+<script type="text/javascript">
+// Postar Video para o servidor
+function postVideoToServer() {
+	//indicadores de envio, barra de status
+	$('.meter.capturLongaTela').css( "width", "10%" );
+	$('.metertext.capturLongaTela').html("10%");
+	
+	// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+	var formData = new FormData($('#formGravacaoVideoLongo')[0]);
+	try{
+		formData.append('video', window.audioVideoRecorder.getBlob());
+	}catch(err){
+		alert("Grave um video! Para isso clique no botão gravar!");
+		return false;
+	}
+	//indicadores de envio, barra de status
+	$('.meter.capturLongaTela').css( "width", "30%" );
+	$('.metertext.capturLongaTela').html("30%");
+    
+	//Enviamos nosso objeto
+	
+    $.ajax({
+    	type: "POST",
+		url: "{% url 'rcapturalonga:salvarVideo' %}",
+		enctype: "multipart/form-data",
+		data: formData,
+		cache: false,
+        contentType: false,
+        processData: false,
+        async: false,
+		success: function(data) {
+			//indicadores de envio, barra de status
+			$('.meter.capturLongaTela').css( "width", "60%" );
+			$('.metertext.capturLongaTela').html("60%");
+			onUploadSuccess(data);
+             //$('#teste_request').html(data);
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log(errorMessage + " - " + textStatus); // Optional
+	     }
+	});
+	return false;
+}
+
+function onUploadSuccess(data) {
+	//indicadores de envio, barra de status
+	$('.meter.capturLongaTela').css( "width", "80%" );
+	$('.metertext.capturLongaTela').html("80%");
+	if(data.erro_message){
+		alert(data.erro_message);
+	}else{
+		//indicadores de envio, barra de status
+		$('.meter.capturLongaTela').css( "width", "100%" );
+		$('.metertext.capturLongaTela').html("100%");
+		if(data.palavra_pk){
+			var palavra_pk = data.palavra_pk; //validamos a palavra existente
+		}
+	}
+}
+
+function mudarTempo(){
+	eTimeOfRecording = document.getElementById('CRCapturaLongaTempo');
+	timeOfRecording = eTimeOfRecording.options[eTimeOfRecording.selectedIndex].text;
+	
+	document.getElementById('RCapturaLongaSegundos').innerHTML = timeOfRecording;
+}
+</script>
+
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Captura de sentenças
+{% endblock %}
+
+{% block recurso %}
+<!-- Utilizamos a tecnologia RTC da Mozilla -->
+<script type="text/javascript" src="{% static 'js/recordRTC.js' %}"></script>
+<div class="row">
+	<h4>Gravação de sentenças em sinais LIBRAS</h4>
+	<p>Necessitará de uma câmera para gravar. Você tem <b><span id="RCapturaLongaSegundos">5</span></b> de gravação. 
+	Download do video aparecerá aqui:<span id="capturLonga-download-url"></span></p>
+	<div class="row">
+		<div class="large-4 columns">
+			<video class="gravacao" width="240" height="180" autoplay="autoplay"
+				loop="loop" id="capturLongaTela"> Your browser does not support
+				the video tag.
+			</video>
+		</div>
+		<form class="large-8 columns" id="formGravacaoVideoLongo">
+		{% csrf_token %}
+			<div class="row">
+				<div class="large-12 columns">
+					<input name="RCLrecursoid" type="hidden" value="{{recurso.id}}">
+					<label> Frase <input id="RCapturaFrase" name="RCapturaFrase" 
+					type="text" value="" placeholder="Insira uma frase" />
+					</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-12 columns">
+					<ul class="button-group even-2">
+						<li><a  id="capturLongaTela-start-recording" class="button"><i
+								class="fa fa-video-camera fa-2"></i> Iniciar Gravação</a></li>
+						<li><a id="capturLongaTela-stop-recording"
+								class="button secondary alert">
+								<i class="fa fa-stop fa-2"></i> Parar Gravação
+							</a></li>
+					</ul>
+				</div>
+			</div>
+		</form>
+		<div class="row">
+			<div class="large-8 columns">
+				<div class="progress success radius round">
+					<span class="meter capturLongaTela" style="width: 0%"></span>
+				</div>
+			</div>
+			<div class="large-1 columns metertext capturLongaTela">0%</div>
+			<div class="large-3 columns">
+				<a id="botaoSalvarVideoLongo" onclick="postVideoLongoToServer();" 
+				class="button tiny expand">Enviar Gravação</a>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Nossa definições para a captura de video desta página -->
+<script type="text/javascript" src="{% static 'js/capturaLonga.js' %}"></script>
+{% endblock %}
+
+{% block configuracao %}
+<form id="RCapturaLonga" name="RCapturaLonga">{% csrf_token %}
+<div class="row">
+	<div class=" large-6 columns">
+		<label>
+			Frase predefinida
+			<input type="text" value="{{configs.7.CRCapturaLongaFrase }}" placeholder="Entre com uma frase predefinida para os alunos" name="CRCapturaLongaFrase">
+		</label>
+	</div>
+	<div class=" large-6 columns">
+		<label>
+			Tempo de Gravação
+			<select name="CRCapturaLongaTempo" id="CRCapturaLongaTempo" onchange="mudarTempo();">
+				<option value="5000" {% ifequal configs.7.CRCapturaLongaTempo '5000' %} selected="selected" {% endifequal %}>5 segundos</option>
+				<option value="10000" {% ifequal configs.7.CRCapturaLongaTempo '10000' %} selected="selected" {% endifequal %}>10 segundos</option>
+				<option value="15000" {% ifequal configs.7.CRCapturaLongaTempo '15000' %} selected="selected" {% endifequal %}>15 segundos</option>
+				<option value="20000" {% ifequal configs.7.CRCapturaLongaTempo '20000' %} selected="selected" {% endifequal %}>20 segundos</option>
+				<option value="25000" {% ifequal configs.7.CRCapturaLongaTempo '25000' %} selected="selected" {% endifequal %}>25 segundos</option>
+				<option value="30000" {% ifequal configs.7.CRCapturaLongaTempo '30000' %} selected="selected" {% endifequal %}>30 segundos</option>
+				<option value="35000" {% ifequal configs.7.CRCapturaLongaTempo '35000' %} selected="selected" {% endifequal %}>35 segundos</option>
+				<option value="40000" {% ifequal configs.7.CRCapturaLongaTempo '40000' %} selected="selected" {% endifequal %}>40 segundos</option>
+				<option value="45000" {% ifequal configs.7.CRCapturaLongaTempo '45000' %} selected="selected" {% endifequal %}>45 segundos</option>
+				<option value="50000" {% ifequal configs.7.CRCapturaLongaTempo '50000' %} selected="selected" {% endifequal %}>50 segundos</option>
+				<option value="55000" {% ifequal configs.7.CRCapturaLongaTempo '55000' %} selected="selected" {% endifequal %}>55 segundos</option>
+				<option value="60000" {% ifequal configs.7.CRCapturaLongaTempo '60000' %} selected="selected" {% endifequal %}>60 segundos</option>
+				<option value="65000" {% ifequal configs.7.CRCapturaLongaTempo '65000' %} selected="selected" {% endifequal %}>65 segundos</option>
+				<option value="70000" {% ifequal configs.7.CRCapturaLongaTempo '70000' %} selected="selected" {% endifequal %}>70 segundos</option>
+				<option value="75000" {% ifequal configs.7.CRCapturaLongaTempo '75000' %} selected="selected" {% endifequal %}>75 segundos</option>
+				<option value="80000" {% ifequal configs.7.CRCapturaLongaTempo '80000' %} selected="selected" {% endifequal %}>80 segundos</option>
+				<option value="85000" {% ifequal configs.7.CRCapturaLongaTempo '85000' %} selected="selected" {% endifequal %}>85 segundos</option>
+				<option value="90000" {% ifequal configs.7.CRCapturaLongaTempo '90000' %} selected="selected" {% endifequal %}>90 segundos</option>
+				<option value="95000" {% ifequal configs.7.CRCapturaLongaTempo '95000' %} selected="selected" {% endifequal %}>95 segundos</option>
+				<option value="100000" {% ifequal configs.7.CRCapturaLongaTempo '100000' %} selected="selected" {% endifequal %}>100 segundos</option>
+				<option value="105000" {% ifequal configs.7.CRCapturaLongaTempo '105000' %} selected="selected" {% endifequal %}>105 segundos</option>
+				<option value="110000" {% ifequal configs.7.CRCapturaLongaTempo '110000' %} selected="selected" {% endifequal %}>110 segundos</option>
+				<option value="115000" {% ifequal configs.7.CRCapturaLongaTempo '115000' %} selected="selected" {% endifequal %}>115 segundos</option>
+				<option value="120000" {% ifequal configs.7.CRCapturaLongaTempo '120000' %} selected="selected" {% endifequal %}>120 segundos</option>
+			</select>
+		</label>
+	</div>
+</div>
+<div class="row">
+	<div class=" large-12 columns">
+		<label> Comportamentos<br>
+			{% if configs.7.CRCapturaLongaComportamentosPublico == 'on' %}
+			<input name="CRCapturaLongaComportamentosPublico" type="checkbox" {% if configs.7.CRCapturaLongaComportamentosPublico == 'on' %} checked="checked" {% endif %}> Mostra todas os envios aos alunos<br>
+			{% else %}
+			<input name="CRCapturaLongaComportamentosPublico" type="checkbox"> Mostra todas os envios aos alunos<br>
+			{% endif %}
+			
+			{% if configs.7.CRCapturaLongaComportamentosLivre == 'on' %}
+			<input name="CRCapturaLongaComportamentosLivre" type="checkbox" {% if configs.7.CRCapturaLongaComportamentosLivre == 'on' %} checked="checked" {% endif %}> Gravação Livre (Rejeita a lsita de palavras)<br>
+			{% else %}
+			<input name="CRCapturaLongaComportamentosLivre" type="checkbox"> Gravação Livre (Rejeita a lsita de palavras)<br>
+			{% endif %}
+		</label>
+	</div>
+</div>
+</form>
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

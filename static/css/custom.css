@@ -1,0 +1,71 @@
+@CHARSET "UTF-8";
+
+.floated-menu{
+	float: right;
+	right: 0;
+	position: fixed;
+}
+
+#recomendacoes{
+	
+}
+
+.playlist{
+	overflow: auto;
+	overflow-y: hidden;
+	-ms-overflow-y: hidden;
+	white-space: nowrap;
+}
+
+.item_filme{
+	display: inline-block;
+}
+
+.item_filme:hover{
+	background: aqua;
+}
+
+.words_to p{
+	font-family: "Font Libras";
+	font-size: 24pt;
+}
+
+.submissoes{
+	overflow: auto;
+	overflow-x: hidden;
+	-ms-overflow-x: hidden;
+	white-space: nowrap;
+	max-height: 400px;
+}
+
+.submissoes .item_filme{
+	display: block;
+	float: left;
+	margin: 2px;
+}
+
+.submissoes .item_menu{
+	display: block;
+	float: left;
+}
+
+@font-face {
+	    font-family: Libras;
+	    src: url("/static/fonts/libras_fontes.ttf") format("truetype");
+}
+
+.itemsBusca{
+	overflow: auto;
+	overflow-y: hidden;
+	-ms-overflow-y: hidden;
+	white-space: nowrap;
+}
+
+.itemPalavra{
+	display: inline-block;
+}
+
+.editor{
+	border: #000000 1px solid;
+	background: white;
+}

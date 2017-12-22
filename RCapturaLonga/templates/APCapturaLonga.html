@@ -1,0 +1,224 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+{% load ap_extras %}
+{% block scripts %} 
+<style>
+.ListMeusVideos{
+	overflow: auto;
+	overflow-y: hidden;
+	-ms-overflow-y: hidden;
+	white-space: nowrap;
+	max-height: 400px;
+}
+
+.ListMeusVideosItem{
+	display: inline-block;
+}
+
+.videoitem{
+	float: left;
+}
+</style>
+
+<script type="text/javascript">
+
+// Postar Video para o servidor
+function postVideoLongoToServer() {
+	//indicadores de envio, barra de status
+	$('.meter.capturLongaTela').css( "width", "10%" );
+	$('.metertext.capturLongaTela').html("10%");
+	
+	// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+	var formData = new FormData($('#formGravacaoVideoLongo')[0]);
+	try{
+		formData.append('video', window.audioVideoRecorder.getBlob());
+		formData.append('RCapturaLongafrase', document.getElementById("formGravacaoVideoLongo").elements['frase'].value)
+	}catch(err){
+		alert("Grave um video! Para isso clique no botão gravar!");
+		return false;
+	}
+	//indicadores de envio, barra de status
+	$('.meter.capturLongaTela').css( "width", "30%" );
+	$('.metertext.capturLongaTela').html("30%");
+    
+	//Enviamos nosso objeto
+	
+    $.ajax({
+    	type: "POST",
+		url: "{% url 'rcapturalonga:salvarVideo' %}",
+		enctype: "multipart/form-data",
+		data: formData,
+		cache: false,
+        contentType: false,
+        processData: false,
+        async: false,
+		success: function(data) {
+			//indicadores de envio, barra de status
+			$('.meter.capturLongaTela').css( "width", "60%" );
+			$('.metertext.capturLongaTela').html("60%");
+			onUploadSuccess(data);
+             //$('#teste_request').html(data);
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log(errorMessage + " - " + textStatus); // Optional
+	     }
+	});
+	return false;
+}
+
+function onUploadSuccess(data) {
+	//indicadores de envio, barra de status
+	$('.meter.capturLongaTela').css( "width", "80%" );
+	$('.metertext.capturLongaTela').html("80%");
+	if(data.erro_message){
+		alert(data.erro_message);
+	}else{
+		//indicadores de envio, barra de status
+		$('.meter.capturLongaTela').css( "width", "100%" );
+		$('.metertext.capturLongaTela').html("100%");
+		if(data.texto_pk){
+			var texto_pk = data.texto_pk; //validamos a palavra existente
+		}
+	}
+}
+
+function replayCapturaVideo(){
+	var vid = document.getElementById("capturLongaTela");
+	vid.loop = true;
+	vid.load();
+}
+
+function replayMeuVideo(id){
+	var vid = document.getElementById("meuVideo"+id);
+	vid.loop = true;
+	vid.load();
+}
+</script>
+
+{% endblock %}
+
+{% block recursonome %}
+	Captura de sentenças em LIBRAS
+{% endblock %}
+
+{% block recurso %}
+<!-- Utilizamos a tecnologia RTC da Mozilla -->
+<script type="text/javascript" src="{% static 'js/recordRTC.js' %}"></script>
+<div class="">
+	<p>Necessitará de uma câmera para gravar. Você tem <b><span id="RCapturaLongaSegundos">{% widthratio config.CRCapturaLongaTempo 1000 1 %}</span></b> segundos de gravação.
+	Download do video aparecerá aqui:<span id="capturLongaTela-download-url"></span></p>
+	<div class="">
+		<div class="large-4 columns">
+			<button class="button tiny" onclick="replayCapturaVideo();"><i class="fa fa-repeat"></i> Replay</button>
+			<video class="gravacao" width="240" height="180" autoplay="autoplay"
+				loop="loop" id="capturLongaTela"> Your browser does not support
+				the video tag.
+			</video>
+		</div>
+		<form class="large-8 columns" id="formGravacaoVideoLongo">
+		{% csrf_token %}
+			<div class="row">
+				<div class="large-12 columns">
+					<input name="tempoGravacao" value="{{config.CRCapturaLongaTempo}}" type="hidden">
+					<input name="RCLrecursoid" type="hidden" value="{{recurso.id}}">
+					{%  if config.CRCapturaComportamentosLivre %}
+					<label> Frase <input id="frase" name="RCapturaLongFrase" 
+					type="text" value="" placeholder="Insira uma frase..." />
+					</label>
+					{% else %}
+					<label> Frase
+						<input type="text" id="frase" name="RCapturaLongaFrase" 
+						value="{{config.CRCapturaLongaFrase}}" disabled="disabled"/>
+					</label>
+					{% endif %}
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-12 columns">
+					<ul class="button-group even-2">
+						<li><a  id="capturLongaTela-start-recording" class="button"><i
+								class="fa fa-video-camera fa-2"></i> Iniciar Gravação</a></li>
+						<li><a id="capturLongaTela-stop-recording"
+								class="button secondary alert">
+								<i class="fa fa-stop fa-2"></i> Parar Gravação
+							</a></li>
+					</ul>
+				</div>
+			</div>
+		</form>
+		<div class="row">
+			<div class="large-8 columns">
+				<div class="progress success radius round">
+					<span class="meter capturLongaTela" style="width: 0%"></span>
+				</div>
+			</div>
+			<div class="large-1 columns metertext capturLongaTela">0%</div>
+			<div class="large-3 columns">
+				<a id="botaoSalvarVideoLongo" onclick="postVideoLongoToServer();" 
+				class="button tiny expand">Encerrar atividade</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<h4>Meus Envios</h4>
+	<div class="large-12 columns ListMeusVideos" >
+		{% for texto in RCLDados %}
+			{% if texto.user == user %}
+			<div class="ListMeusVideosItem">
+				<button onclick="replayMeuVideo({{texto.id}})" class="button tiny"><i class="fa fa-repeat"></i> Replay</button>
+				<video controls="controls" class="meuVideo{{texto.id}} videoitem" width="240" height="180"
+					 id="meuVideo{{texto.id}}"> Your browser does not support
+					the video tag.
+					<source  id="meuVideo{{texto.id}}" type="video/webm" src="{% static texto.video %}">
+				</video>
+				<div style="clear: both; text-align: center;">
+					<span><b>Frase: </b>{{texto.texto}}</span><br>
+					<span>por <b>{{texto.user.first_name}} {{texto.user.last_name}}</b></span><br>
+					<span><a href="{% static texto.video %}" br="captura{{user.username}}{{texto.id}}.webm">Download</a></span><br>
+					<span>Acesso externo: <a href="{% static frase.video %}">{% static frase.video %}</a></span>
+				</div>
+			</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+</div>
+{% if config.CRCapturaLongaComportamentosPublico %}
+<div class="row">
+	<div class="large-12 columns">
+		<h4>Envios dos colegas</h4>
+		{% for frase in RCLDados %}
+		{% if frase.user != user %}
+		<div style="text-align: center; float: left; border: 1px solid #ccc">
+			<video controls="controls" class="meuVideo{{frase.id}}" width="120" height="90"
+				 id="meuVideo{{frase.id}}"> Your browser does not support
+				the video tag.
+				<source  id="meuVideo{{frase.id}}" type="video/webm" src="{% static frase.video %}">
+			</video>
+			<button onclick="replayMeuVideo({{frase.id}})" class="button tiny"><i class="fa fa-repeat"></i> Replay</button>
+			<br>
+			<span><b>Frase: </b>{{frase.texto}}</span><br>
+			<span>por <b>{{frase.user.first_name}} {{frase.user.last_name}}</b></span><br>
+			<span><a href="{% static frase.video %}" download="captura{{frase.user.username}}{{frase.id}}.webm">Download</a></span><br>
+			<span>Acesso externo: <a href="{% static frase.video %}">{% static frase.video %}</a></span>
+		</div>
+		{% endif %}
+		{% endfor %}
+		
+	</div>
+</div>
+{% endif %}
+<script type="text/javascript">
+function replayMeuVideo(id){
+	var vid = document.getElementById("meuVideo"+id);
+	vid.loop = true;
+	vid.load();
+}
+</script>
+<!-- Nossa definições para a captura de video desta página -->
+<script type="text/javascript" src="{% static 'js/capturaLonga.js' %}"></script>
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

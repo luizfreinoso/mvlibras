@@ -1,0 +1,108 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+	/**
+		Conversosr de portugês para DATILOLOGIA
+		Fonte utilizada: Libras_Kidmais01.tft
+	**/
+	function startAppDatilologia(){
+		{% for dado in dadosAP %}
+		{% if dado.user == user %}
+			RDatilologiaportuguestexto.document.body.innerHTML  = '{{dado.value|safe}}';
+			RDatilologialibrastexto.document.body.innerHTML = retira_acentos(
+					RDatilologiaportuguestexto.document.body.innerHTML.replace('?', '')
+				);
+		{% endif %}
+		{% endfor %}
+		RDatilologiaportuguestexto.document.designMode = 'On';
+		RDatilologiaportuguestexto.document.addEventListener("keyup", converter_libras, false);
+	}
+	
+	// Função que passa as letras e palavras digitadas para o tradutor
+	// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+	function converter_libras(evt) {
+		RDatilologialibrastexto.document.body.innerHTML = retira_acentos(
+			RDatilologiaportuguestexto.document.body.innerHTML.replace('?', '')
+		);
+	}
+
+function saveLOG(){
+	id = {{recurso.id}}
+	var formData = new FormData($('#RDatilologiaportuguestextoFORM')[0]);
+	try{
+		if ($('#RDatilologiaportuguestexto').contents().find("body").html() != ""){
+			formData.append('log', $('#RDatilologiaportuguestexto').contents().find("body").html());
+		}else{
+			alert("Escreva para gravar");
+			return false;
+		}
+	}catch(err){
+		return false;
+	}
+	$.ajax({
+		url: '/aps/' + id +'/salvarLog/',
+		//url: '/mvlibras/apaigl/'+ slug +'/busca_video/',
+		type: "POST",
+		data: formData,
+		cache: false,
+		async: false,
+        contentType: false,
+        processData: false,
+		success: function(data) {
+			console.log('Log salvo');
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log('Log erro');
+		     }
+		});
+	return true;
+}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Datilologia
+{% endblock %}
+
+{% block recurso %}
+<div class="">
+	<div class="large-6 columns">
+		<h3 id="editor">Editor</h3>
+		<form name="RDatilologiaportuguestextoFORM" id="RDatilologiaportuguestextoFORM">{% csrf_token %}
+		<iframe class="editor" style="width: 100%" id="RDatilologiaportuguestexto" name="RDatilologiaportuguestexto">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+		</form>
+	</div>
+	<div class="large-6 columns">
+		<h3 id="tradutor">Datilologia</h3>
+		<iframe class="editor" style="width: 100%" id="RDatilologialibrastexto" name="RDatilologialibrastexto" 
+			src="{% url 'rdatilologia:TradutorDatilologia' %}">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+	</div>
+</div>
+
+{%  block joyride %}
+<ol class="joyride-list" data-joyride>
+  <li data-id="RInterpretadorportuguestexto" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: top">
+    <h4>Editor em Português</h4>
+    <p>Escreva um texto normalmente ou em LIBRAS sinalizada, de acordo com o seu estudo.</p>
+  </li>
+  <li data-id="RDatilologialibrastexto" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Datilologia</h4>
+    <p>O texto digitado no <b>Editor em Português</b> aparecerá aqui.</p>
+  </li>
+  <li data-prev-text="Anterior" data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

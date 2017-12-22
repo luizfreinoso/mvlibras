@@ -1,0 +1,222 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+	/**
+		Conversosr de portugês para DATILOLOGIA
+		Fonte utilizada: Libras_Kidmais01.tft
+	**/
+	function startAppDatilologia(){
+		RDatilologiaportuguestexto.document.designMode = 'On';
+	}
+	
+	function replayCapturaVideoDatilologia(){
+		var vid = document.getElementById("DatilologiaViasualTela");
+		vid.loop = true;
+		vid.load();
+	}
+	
+	function postVideoDatilologiaToServer() {
+		//indicadores de envio, barra de status
+		$('.meter.capturaDatilologia').css( "width", "10%" );
+		$('.metertext.capturaDatilologia').html("10%");
+		
+		// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+		var formData = new FormData($('#RDatilologiaVisual')[0]);
+		try{
+			formData.append('video', window.audioVideoRecorder.getBlob());
+		}catch(err){
+			alert("Grave um video! Para isso clique no botão gravar!");
+			return false;
+		}
+		//indicadores de envio, barra de status
+		$('.meter.capturaDatilologia').css( "width", "30%" );
+		$('.metertext.capturaDatilologia').html("30%");
+	    
+		//Enviamos nosso objeto
+		
+	    $.ajax({
+	    	type: "POST",
+			url: "{% url 'rdatilologiavisual:salvarVideo' %}",
+			enctype: "multipart/form-data",
+			data: formData,
+			cache: false,
+	        contentType: false,
+	        processData: false,
+	        async: false,
+			success: function(data) {
+				//indicadores de envio, barra de status
+				$('.meter.capturaDatilologia').css( "width", "60%" );
+				$('.metertext.capturaDatilologia').html("60%");
+				onUploadSuccessDatilologia(data);
+	             //$('#teste_request').html(data);
+			 },
+			 error: function(jqXHR, textStatus, errorMessage) {
+		          console.log(errorMessage + " - " + textStatus); // Optional
+		     }
+		});
+		return false;
+	}
+
+	function onUploadSuccessDatilologia(data) {
+		//indicadores de envio, barra de status
+		$('.meter.capturaDatilologia').css( "width", "80%" );
+		$('.metertext.capturaDatilologia').html("80%");
+		if(data.erro_message){
+			alert(data.erro_message);
+		}else{
+			//indicadores de envio, barra de status
+			$('.meter.capturaDatilologia').css( "width", "100%" );
+			$('.metertext.capturaDatilologia').html("100%");
+			if(data.video_link){
+				document.getElementById("RDatilologiaVisual").elements['videoFile'].value = data.video_link;
+				document.getElementById("RDatilologiaVisual").elements['RDVTextoId'].value = data.texto_pk;
+			}
+		}
+	}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Interpertação Visual
+{% endblock %}
+
+{% block recurso %}
+<div class="row panel radius">
+	<div class="large-6 columns">
+		<h3 id="editor">Tradução</h3>
+		<iframe class="editor" style="width: 100%" id="RDatilologiaVisualportuguestexto" name="RDatilologiaVisualportuguestexto">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+	</div>
+	<div class="large-6 columns">
+		<h3 id="tradutor">Video para Interpretação</h3>
+	</div>
+</div>
+
+<script>
+
+</script>
+{% endblock %}
+
+{% block configuracao %}
+<!-- Utilizamos a tecnologia RTC da Mozilla -->
+<script type="text/javascript" src="{% static 'js/recordRTC.js' %}"></script>
+<form id="RDatilologiaVisual" name="RDatilologiaVisual">{% csrf_token %}
+	<div class="row">
+		<div class=" large-4 columns">
+			<div class="row">
+				<label>
+					Tempo de Gravação para o recurso
+					<select name="DVTempo" id="DVTempo">
+						<option value="5000" {% ifequal configs.8.DVTempo '5000' %} selected="selected" {% endifequal %}>5 segundos</option>
+						<option value="10000" {% ifequal configs.8.DVTempo '10000' %} selected="selected" {% endifequal %}>10 segundos</option>
+						<option value="15000" {% ifequal configs.8.DVTempo '15000' %} selected="selected" {% endifequal %}>15 segundos</option>
+						<option value="20000" {% ifequal configs.8.DVTempo '20000' %} selected="selected" {% endifequal %}>20 segundos</option>
+						<option value="25000" {% ifequal configs.8.DVTempo '25000' %} selected="selected" {% endifequal %}>25 segundos</option>
+						<option value="30000" {% ifequal configs.8.DVTempo '30000' %} selected="selected" {% endifequal %}>30 segundos</option>
+						<option value="35000" {% ifequal configs.8.DVTempo '35000' %} selected="selected" {% endifequal %}>35 segundos</option>
+						<option value="40000" {% ifequal configs.8.DVTempo '40000' %} selected="selected" {% endifequal %}>40 segundos</option>
+						<option value="45000" {% ifequal configs.8.DVTempo '45000' %} selected="selected" {% endifequal %}>45 segundos</option>
+						<option value="50000" {% ifequal configs.8.DVTempo '50000' %} selected="selected" {% endifequal %}>50 segundos</option>
+						<option value="55000" {% ifequal configs.8.DVTempo '55000' %} selected="selected" {% endifequal %}>55 segundos</option>
+						<option value="60000" {% ifequal configs.8.DVTempo '60000' %} selected="selected" {% endifequal %}>60 segundos</option>
+						<option value="65000" {% ifequal configs.8.DVTempo '65000' %} selected="selected" {% endifequal %}>65 segundos</option>
+						<option value="70000" {% ifequal configs.8.DVTempo '70000' %} selected="selected" {% endifequal %}>70 segundos</option>
+						<option value="75000" {% ifequal configs.8.DVTempo '75000' %} selected="selected" {% endifequal %}>75 segundos</option>
+						<option value="80000" {% ifequal configs.8.DVTempo '80000' %} selected="selected" {% endifequal %}>80 segundos</option>
+						<option value="85000" {% ifequal configs.8.DVTempo '85000' %} selected="selected" {% endifequal %}>85 segundos</option>
+						<option value="90000" {% ifequal configs.8.DVTempo '90000' %} selected="selected" {% endifequal %}>90 segundos</option>
+						<option value="95000" {% ifequal configs.8.DVTempo '95000' %} selected="selected" {% endifequal %}>95 segundos</option>
+						<option value="100000" {% ifequal configs.8.DVTempo '100000' %} selected="selected" {% endifequal %}>100 segundos</option>
+						<option value="105000" {% ifequal configs.8.DVTempo '105000' %} selected="selected" {% endifequal %}>105 segundos</option>
+						<option value="110000" {% ifequal configs.8.DVTempo '110000' %} selected="selected" {% endifequal %}>110 segundos</option>
+						<option value="115000" {% ifequal configs.8.DVTempo '115000' %} selected="selected" {% endifequal %}>115 segundos</option>
+						<option value="120000" {% ifequal configs.8.DVTempo '120000' %} selected="selected" {% endifequal %}>120 segundos</option>
+					</select>
+				</label>
+			</div>
+			<div class="row">
+				<div class=" large-12 columns">
+					<label> Comportamentos<br>
+						{% if configs.8.DVComportamentosLivre == 'on' %}
+						<input name="DVComportamentosCorrecao" type="checkbox" {% if configs.8.DVComportamentosCorrecao == 'on' %} checked="checked" {% endif %}> Gravação Livre (Rejeita a lsita de palavras)<br>
+						{% else %}
+						<input name="DVComportamentosCorrecao" type="checkbox"> Mostrar correção ao aluno<br>
+						{% endif %}
+					</label>
+				</div>
+			</div>
+			<!-- 
+			<div class="row">
+				Download do video aparecerá aqui:<span id="capturaDatilologia-download-url"></span></p>
+			</div>
+			-->
+		</div>
+		<div class=" large-8 columns">
+			<label>Captura de video direta do professor</label>
+			<div class="row">
+				<div class=" large-6 columns">
+					<button class="button tiny" type="button" onclick="replayCapturaVideoDatilologia();">Replay</button>
+					<video class="gravacao" width="240" height="180" autoplay="autoplay"
+						loop="loop" id="DatilologiaViasualTela"
+						{% if configs.8.videoFile and configs.8.videoFile != "" %}
+							src="{% static configs.8.videoFile %}" 
+						{% endif %}> 
+						Your browser does not supportthe video tag.
+					</video>
+					<input name="RDVrecursoid" type="hidden" value="{{recurso.id}}">
+					{% if configs.8.videoFile and configs.8.videoFile != "" %}
+					<input name="videoFile" type="hidden" value="{{configs.8.videoFile}}">
+					{% else %}
+					<input name="videoFile" type="hidden" value="">
+					{% endif %}
+					
+					{% if configs.8.RDVTextoId and configs.8.RDVTextoId != "0" %}
+					<input name="RDVTextoId" type="hidden" value="{{configs.8.RDVTextoId}}">
+					{% else %}
+					<input name="RDVTextoId" type="hidden" value="0">
+					{% endif %}
+				</div>
+				<div class=" large-6 columns">
+					<div class="row">
+						<li><a  id="capturDatilologiaTela-start-recording" class="button expand"><i
+							class="fa fa-video-camera fa-2"></i> Iniciar Gravação</a></li>
+					</div>
+					<div class="row">
+						<li><a id="capturDatilologiaTela-stop-recording"
+							class="button secondary alert expand"><i class="fa fa-stop fa-2"></i> Parar Gravação</a></li>
+					</div>
+					<div class="row">
+						<label>
+							Reposta coreta:
+							<input type="text" name="RDVResposta" id="RDVResposta" 
+							{% if configs.8.RDVResposta %}value="{{configs.8.RDVResposta}}" {% else %} value="" {% endif %} 
+							placeholder="Coloque a resposta do video aqui...">
+						</label>
+					</div>
+					<div class="row">
+						<a id="botaoSalvarVideoDatilologia" onclick="postVideoDatilologiaToServer();" 
+						class="button expand">Enviar Gravação</a>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-10 columns">
+					<div class="progress success radius round">
+						<span class="meter capturaDatilologia" style="width: 0%"></span>
+					</div>
+				</div>
+				<div class="large-2 columns metertext capturaDatilologia">0%</div>
+			</div>
+		</div>
+	</div>
+</form>
+<!-- Nossa definições para a captura de video desta página -->
+<script type="text/javascript" src="{% static 'js/capturaDatilologia.js' %}"></script>
+{% endblock %}
+
+{% block dados %}
+Dados de LOG
+{% endblock %}

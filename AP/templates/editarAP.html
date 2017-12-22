@@ -1,0 +1,102 @@
+{% extends 'base.html' %} {% block title %} Criando uma nova Arquitetura
+Pedagógica {% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<style type="text/css">
+	#sortable { list-style-type: none; margin: 0; padding: 0; }
+  	#sortable li { margin: 0 1px 1px 1px;}
+  	.right-move{float: right; margin-right: 2px;}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type="text/javascript">
+$(function() {
+  $( "#sortable" ).sortable();
+  $( "#sortable" ).disableSelection();
+});
+</script>
+{% endblock %}
+
+{% block conteudo %}
+<form class="row panel" action="{% url 'aps:SalvarAtualizacaoAP' ap.id %}" method="POST">
+	{% csrf_token %}
+	<h3>Criando nova AP</h3>
+	<div class="row">
+		<div class="large-6 columns">
+			<label> Nome <input name="nome" type="text" value="{{ap.nome}}"
+				placeholder="Insira um nome para sua AP" required="required" />
+			</label> <label> Sigla <input name="sigla" type="text" value="{{ap.sigla}}"
+				placeholder="Insira uma sigla para o botão" maxlength="15"
+				required="required">
+			</label> <label>Objetivos <textarea name="descricao"
+					placeholder="Insira uma descirção para os alunos">{{ap.descricao}}</textarea>
+			</label> <label>Atividades <textarea name="atividades"
+					placeholder="Descreva as suas atividades">{{ap.atividades}}</textarea>
+			</label> <label>Metodologia <textarea name="metodologia"
+					placeholder="Descreva suas metodologias para sua arquitetura pedagógica">{{ap.metodologia}}</textarea>
+			</label>
+			<label> Inicialmente Publicada?
+				<div class="switch">
+				{% if ap.publicado %}
+				  <input id="publicado" name="publicado" type="checkbox" checked="checked">
+				{% else %}
+				  <input id="publicado" name="publicado" type="checkbox">
+				{% endif %}
+				  <label for="publicado"></label>
+				</div> 
+			</label>
+		</div>
+		<div class="large-6 columns">
+			<p>Você pode alterar ordem dos 
+			recrusos digitais bem como em configuraçẽs selecionando a operação <b>'Configurar'</b>
+			no painel de suas APs.</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="large-6 columns">
+			<button type="submit" class="expand">Atualizar Dados</button>
+		</div>
+		<div class="large-6 columns">
+			<button type="reset" class="expand">Resetar Campos</button>
+		</div>
+	</div>
+</form>
+
+{% block joyride %}
+<ol class="joyride-list" data-joyride>
+	<li data-id="ap" data-text="Próximo" data-prev-text="Anterior"
+		data-options="tip_location: bottom">
+		<h4>Arquiteturas Pedagógicas</h4>
+		<p>Esse é nosso painel de tecnologias digitais que visam atender
+			as arquiteturas pedagógicas propostas.</p>
+	</li>
+	<li data-id="span" data-class="custom so-awesome" data-text="Próximo"
+		data-prev-text="Anterior">
+		<h4>Ajuda</h4>
+		<p>Para saber o que você irá trabalhar dentro de cada Arquitetura
+			Pedagógica (AP), basta clicar ou colocar o cursor sob este icone!</p>
+	</li>
+	<li data-id="atividade" data-button="Próximo" data-prev-text="Anterior"
+		data-options="tip_location:bottom; tip_animation:fade">
+		<h4>Atividade</h4>
+		<p>Para usar um recurso de uma AP clique no botão e boa aula!</p>
+	</li>
+	<!-- 
+  <li data-id="feed" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>FEED</h4>
+    <p>Novidades do mundo! Esse módulo é ajustavel, basta você acessar seu DASHBOARD!</p>
+  </li>
+  -->
+	<li data-button="Fim">
+		<h4>AJUDA</h4>
+		<p>
+			Utilize o botão <span class="fa fa-question-circle fa-2x"></span>
+			sempre que estiver em uma página nova e que tenha dúvidas!
+		</p>
+	</li>
+</ol>
+{% endblock %} {% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %} 
+{% block conteudo %}
+<div class="row">
+	<div class="large-6 columns">
+		<h4>Olá professor(a) {{user.username}}.</h4>
+		Como professor, você poderá criar e gerir suas APS.
+	</div>
+	<div class="large-6 columns">
+		<h4>Dados Navegação</h4>
+		Registro: {{user.date_joined|date:'d F Y'}}, Último Login: {{user.last_login|date:'d F Y'}}<br>
+		Email para contato: {{user.email}}
+	</div>
+</div>
+<div class="row">
+	<h2 id="ap">Minhas Arquiteturas Pedagógicas
+		<span data-tooltip aria-haspopup="true" 
+		class="has-tip" title="Arquiteturas pedagógicas (AP), são suportes estruturantes para a aprendizagem. Definiremos uma Arquitetura Pedagógica como estrutura deaprendizagem constituída de: 1. objetivo pedagógico; 2. atividades pedagógicas; 3.metodologia; 4. recursos digitais.">
+			<i class="fa fa-info-circle"></i>
+		</span>
+	</h2>
+	<details>Arquiteturas Pedagógicas para aprendizagem de LIBRAS criadas.</details>
+</div>
+<div class="row panel radius callout">
+	<h5>Operações do professor:</h5>
+	<a id="criarAP" href="{% url 'aps:criarAP' %}" class="button">Criar AP</a>
+</div>
+{% for ap in APS %}
+{% if ap.publicado or ap.user == user %}
+<div class="row panel radius">
+	<div class="row">
+		<div class="large-8 columns">
+			<a id="atividade" href="{% url 'aps:ap' ap.id %}" class="button expand">{{ap.sigla}}</a>
+			<details>
+				<center>
+					<span data-tooltip aria-haspopup="true" 
+						class="has-tip" 
+						title="{{ap.atividades}}">
+							<i class="fa fa-info-circle"></i>
+					</span>
+				{{ap.nome}}
+				</center>
+				<b>Objetivos: </b>{{ap.descricao}}<br>
+				<b>Atividades: </b>{{ap.atividades}}<br>
+				<b>Metodologia: </b>{{ap.metodologia}}
+			</div>
+			<div class="large-4 columns callout panel">
+			<b>Operações:</b>
+			{% if ap.user == user %}
+			<a href="{% url 'aps:editarAP' ap.id %}" title="Editar"><i class="fa fa-pencil-square-o fa-2x"></i> </a>
+			<a href="{% url 'aps:configurarAP' ap.id %}" title="Configurar"><i style="color: #777;" class="fa fa-cogs fa-2x"></i> </a>
+			<a href="{% url 'aps:duplicarAP' ap.id %}" title="Duplicar"><i style="color: green;" class="fa fa-files-o fa-2x"></i> </a>
+			<a href="{% url 'aps:removerAP' ap.id %}" title="Excluir"><i style="color: red;" class="fa fa-trash-o fa-2x"></i> </a><br>
+			{% else %}
+			<a href="{% url 'aps:duplicarAP' ap.id %}" title="Duplicar"><i style="color: green;" class="fa fa-files-o fa-2x"></i> </a><br>
+			{% endif %}
+			<b>STATUS:</b> {% if ap.publicado  %} Publicado {% else %} Não Publicado {% endif %}<br>
+			<b>Re-Publicado em </b> {{ap.pub_date}}<br>
+			<b>Última Modificação </b> {{ap.data_ultima_modificacao}}<br>
+			<b>Professor autor: </b> {{ap.user.first_name}} {{ap.user.last_name}}
+			</div>
+		</details>
+	</div>
+</div>
+{% endif %}
+{% endfor %}
+{% block joyride %} 
+<ol class="joyride-list" data-joyride>
+  <li data-id="ap" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: bottom">
+    <h4>Minhas Arquiteturas Pedagógicas</h4>
+    <p>Esse é nosso painel de arquiteturas pedagógicas com suas tecnologias digitais.</p>
+  </li>
+  <li data-id="criarAP" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Operações do professor</h4>
+    <p>Aqui você pode criar uma nova Arquitetura pedagógica para trabalhar.</p>
+  </li>
+  <li data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}

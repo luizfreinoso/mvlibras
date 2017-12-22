@@ -1,0 +1,144 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %} 
+<script type="text/javascript">
+//IFrameON overload
+function iFrameOn(){
+	
+}
+//Função que passa as letras e palavras digitadas para o tradutor
+// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+function palavra_formatada() {
+	// Obrigamos o usuário a digitar palavras
+	$('#palavraDigitada').val($('#palavraDigitada').val().replace(' ', ''));
+	// Removemos acentos e opotuações indesejadas para montar o SLUG
+	$('#palavraDigitada').val(
+			retira_acentos(
+					$('#palavraDigitada').val()
+					.replace('.', '')
+					.replace('?', '')
+			).toLowerCase()
+	);
+}
+
+//ao digitar nosso usuário irá buscar palavras
+function buscarPalavras(){
+	// acima de 3 caracters fazemos a busca na base
+	// usamos o identificardor SLUG para oter todas as palavras similares
+	if($('#palavraDigitada').val().length >= 3 && $('#Rbuscadicionarios').val() != 1){
+		$.ajax({
+	    	type: "GET",
+			url: '/rbusca/' + $('#palavraDigitada').val() + '/' +
+			$('#Rbuscagrupos').val() + '/' + $('#Rbuscadicionarios').val() + '/buscarPalavra/',
+			//url: '/mvlibras/apalp/' + $('#slugInput').val() + '/buscarPalavra/',
+			data: {},
+			cache: false,
+	        contentType: false,
+	        processData: false,
+	        async: false,
+			success: function(data) {
+				if(data['mensagem']){
+					$('#itemsBusca')[0].innerHTML = data['mensagem'];
+				}
+				if(data.caminhos){
+					$('#itemsBusca')[0].innerHTML = "";
+					for(var i =0; i < data.caminhos.length; i++){
+						$('#itemsBusca')[0].innerHTML += 
+							'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+								'<source src="{% static '' %}' + data.caminhos[i].caminho + '" type="video/webm">' +
+							'</video>';
+					}
+				}
+			 },
+			 error: function(jqXHR, textStatus, errorMessage) {
+				 console.log(errorMessage + " - " + textStatus); // Optional
+		     }
+		});
+		//inserimos caso tenha no ines se for todos
+		if ($('#Rbuscadicionarios').val() == 0){
+			$('#itemsBusca')[0].innerHTML += 
+				'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+					'<source src="/static/media/ines/' + 
+					$('#palavraDigitada').val() + 
+					'Sm_Prog001.mp4" type="video/webm">' +
+				'</video>';	
+		}
+	}else{ // busca somente no INES
+		$('#itemsBusca')[0].innerHTML = "";
+		$('#itemsBusca')[0].innerHTML += 
+			'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+				'<source src="/static/media/ines/' + $('#palavraDigitada').val() + 'Sm_Prog001.mp4" type="video/webm">' +
+			'</video>';
+	}
+	return false;
+}
+</script>
+
+{% endblock %}
+
+{% block recursonome %}
+	Busca por sinais LIBRAS
+{% endblock %}
+
+{% block recurso %}
+<div class="row">
+	<div id="encontrarPalavra" class="large-4 columns">
+		<h4>Encontrar palavras</h4>
+		<label>Palavra
+			<input type="text" id="palavraDigitada" onkeyup="palavra_formatada();buscarPalavras();">
+		</label>
+	</div>
+	<div id="itemsBusca" class="large-8 columns itemsBusca" style="border: 1px solid #ccc; height: 100%">
+		Digite uma palavra para encontrar sinais correspondentes!
+	</div>
+</div>
+<form id="Rbusca" name="Rbusca" class="row">{% csrf_token %}
+	<div class=" large-6 columns">
+		<label>
+			Dicionários
+			<select onchange="buscarPalavras();" name="Rbuscadicionarios" id="Rbuscadicionarios">
+				<option value="0" {% ifequal config.Rbuscadicionarios 0|slugify %} selected="selected" {% endifequal %}> Todos </option>
+				<option value="1" {% ifequal config.Rbuscadicionarios 1|slugify %} selected="selected" {% endifequal %}> INES </option>
+				<option value="2" {% ifequal config.Rbuscadicionarios 2|slugify %} selected="selected" {% endifequal %}> Pessoal </option>
+				<option value="3" {% ifequal config.Rbuscadicionarios 3|slugify %} selected="selected" {% endifequal %}> Local </option>
+			</select>
+		</label>
+	</div>
+	<div class=" large-6 columns">
+		<label>
+			Grupos
+			<select onchange="buscarPalavras();" name="Rbuscagrupos" id="Rbuscagrupos">
+				<option value="0" {% ifequal config.Rbuscagrupos 0|slugify %} selected="selected" {% endifequal %}> Todos </option>
+				{% for grupo in Dgrupos %}
+				<option value="{{grupo.id}}" {% ifequal config.Rbuscagrupos grupo.id|slugify %} selected="selected" {% endifequal %}>{{grupo.nome}}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+</form>
+{%  block joyride %}
+<ol class="joyride-list" data-joyride>
+  <li data-id="palavraDigitada" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: top">
+    <h4>Palavra</h4>
+    <p>Digite a palavra a ser pesquisada.</p>
+  </li>
+  <li data-id="Rbuscadicionarios" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Dicionários</h4>
+    <p>As palavras estão dispostas em diversos dicionários, selecione para filtrar os resultados.</p>
+  </li>
+  <li data-id="Rbuscagrupos" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Grupo</h4>
+    <p>A organização de palavras por grupo nos ajuda a melhor nos orientarmos nas buscas e na categorização de palavras.</p>
+  </li>
+  <li data-id="itemsBusca" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Resultados</h4>
+    <p>O resultado das buscas aparecerá aqui.</p>
+  </li>
+  <li data-prev-text="Anterior" data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'base.html' %} {% block title %} Criando uma nova Arquitetura
+Pedagógica {% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<style type="text/css">
+	#sortable { list-style-type: none; margin: 0; padding: 0; }
+  	#sortable li { margin: 0 1px 1px 1px;}
+  	.right-move{float: right; margin-right: 2px;}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type="text/javascript">
+$(function() {
+  $( "#sortable" ).sortable();
+  $( "#sortable" ).disableSelection();
+});
+</script>
+{% endblock %}
+
+{% block conteudo %}
+<form class="row panel" action="{% url 'aps:criarNovaAP' %}" method="POST">
+	{% csrf_token %}
+	<h3>Criando nova AP
+	<span data-tooltip aria-haspopup="true" 
+		class="has-tip" title="Arquiteturas pedagógicas (AP), são suportes estruturantes para a aprendizagem. Definiremos uma Arquitetura Pedagógica como estrutura deaprendizagem constituída de: 1. objetivo pedagógico; 2. atividades pedagógicas; 3.metodologia; 4. recursos digitais.">
+			<i class="fa fa-info-circle"></i>
+	</span>
+	</h3>
+	<div class="row">
+		<div class="large-6 columns">
+			<label> 
+			<span data-tooltip aria-haspopup="true" 
+			class="has-tip" title="Defina uma nome para sua arquitetura pedagógica. Coloque um nime que facilite sua identificação.">
+				Nome
+			</span>  
+			<input name="nome" type="text"
+				placeholder="Insira um nome para sua AP" required="required" />
+			</label> <label>
+			<span data-tooltip aria-haspopup="true" 
+			class="has-tip" title="Seus alunos verão um botão para acesso a sua AP. Coloque uma SIGLA de até 15 caracteres para este botão.">
+				Sigla Botão
+			</span>  
+			<input name="sigla" type="text"
+				placeholder="Insira uma sigla para o botão" maxlength="15"
+				required="required">
+			</label> <label>
+			<span data-tooltip aria-haspopup="true" 
+			class="has-tip" title="O objetivo pedagógico define o resultado esperado da aplicação de uma AP. Descreva-o aqui.">
+				Objetivos
+			</span> 
+			<textarea name="descricao"
+					placeholder="Insira uma descirção para os alunos"></textarea>
+			</label> <label>
+			<span data-tooltip aria-haspopup="true" 
+			class="has-tip" title="As atividades pedagógicas são aquelas elaboradas pelo professor, juntamente com o grupo de aprendizes, visando atingir o objetivo pedagógico. Descreva-as.">
+				Atividades
+			</span> 
+			<textarea name="atividades"
+					placeholder="Descreva as suas atividades"></textarea>
+			</label> <label>
+			<span data-tooltip aria-haspopup="true" 
+			class="has-tip" title="A metodologia define como as atividades pedagógicas são desenvolvidas para se alcançar os objetivos. Descreva-a.">
+				Metodologia
+			</span>
+			<textarea name="metodologia"
+					placeholder="Descreva suas metodologias para sua arquitetura pedagógica"></textarea>
+			</label>
+			<label> Inicialmente Visível aos alunos?
+				<div class="switch">
+				  <input id="publicado" name="publicado" type="checkbox" checked="checked">
+				  <label for="publicado"></label>
+				</div> 
+			</label>
+		</div>
+		<div class="large-6 columns">
+			<label><b>Selecione recursos digitais para a aquitetura pedagógica</b>
+			<span data-tooltip aria-haspopup="true" 
+				class="has-tip" title="Os recursos digitais são aqueles escolhidos para viabilizarem ou agilizarem a execução das atividades pedagógicas.">
+					<i class="fa fa-info-circle"></i>
+			</span>
+			<br>
+			Você pode selecionar os recursos e alterar sua ordem de exibição.
+			<ul id="sortable">
+				<li class="ui-state-default">
+					<input type="checkbox" name="recursos" value="1"> Busca de Palavras 
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Sistema de busca, onde os alunos encontram sinais LIBRAS a partir de palavras em Português. Possibilita configuração de dicionários de busca.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input type="checkbox" name="recursos" value="2"> Captura de sinais LIBRAS
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Sistema de captura de sinais diretamente do seu computador. Você pode permitir o envio livre de sinais para o aluno ou limitar, criando uma lista de palavras. O professor pode enviar mensagens, apagar e reagrupar os envios.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input type="checkbox" name="recursos" value="3"> Conversor para DATILOLOGIA
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Conversor de letras e palavras para DATILOLOGIA. Sistema gera lista registros ao professor.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input type="checkbox" name="recursos" value="4"> Interpretador textual
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Sistema para interpretação de palavras libras, através da edição de palavras e sentenças.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input class="ui-state-default" type="checkbox" name="recursos" value="5"> Anexo de arquivos
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Possibilita anexar aquivos de qualquer tipo. Assim você pode anexar dados para suas atividades, para o aluno baixar.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input class="ui-state-default" type="checkbox" name="recursos" value="6"> Edição de notas e HTML
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Permite colocar textos simples ou em HTML da web, como videos do Youtube, conteúdos do SlideShare, etc..">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input class="ui-state-default" type="checkbox" name="recursos" value="7"> Captura de FRASES e SENTENÇAS
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Sistema de Captura que permite gravar até 120 segundos de acordo com a configuraão do professor.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+				<li class="ui-state-default">
+					<input class="ui-state-default" type="checkbox" name="recursos" value="8"> Interpretação Visual
+					<span data-tooltip aria-haspopup="true" 
+					class="has-tip" title="Sistema com Captura para po professor gravar até 120 segundos de acordo com a nescessidade. O aluno deve traduzir em Português videos gravados pelo professor.">
+						<i class="fa fa-info-circle"></i>
+					</span>
+					<span class="fa fa-sort right-move"></span>
+				</li>
+			</ul>
+			</label>
+		</div>
+	</div>
+	<div class="row">
+		<div class="large-6 columns">
+			<button type="submit" class="expand">Criar</button>
+		</div>
+		<div class="large-6 columns">
+			<button type="reset" class="expand">Resetar Campos</button>
+		</div>
+	</div>
+</form>
+
+{% block joyride %}
+<ol class="joyride-list" data-joyride>
+	<li data-id="ap" data-text="Próximo" data-prev-text="Anterior"
+		data-options="tip_location: bottom">
+		<h4>Arquiteturas Pedagógicas</h4>
+		<p>Esse é nosso painel de tecnologias digitais que visam atender
+			as arquiteturas pedagógicas propostas.</p>
+	</li>
+	<li data-id="span" data-class="custom so-awesome" data-text="Próximo"
+		data-prev-text="Anterior">
+		<h4>Ajuda</h4>
+		<p>Para saber o que você irá trabalhar dentro de cada Arquitetura
+			Pedagógica (AP), basta clicar ou colocar o cursor sob este icone!</p>
+	</li>
+	<li data-id="atividade" data-button="Próximo" data-prev-text="Anterior"
+		data-options="tip_location:bottom; tip_animation:fade">
+		<h4>Atividade</h4>
+		<p>Para usar um recurso de uma AP clique no botão e boa aula!</p>
+	</li>
+	<!-- 
+  <li data-id="feed" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>FEED</h4>
+    <p>Novidades do mundo! Esse módulo é ajustavel, basta você acessar seu DASHBOARD!</p>
+  </li>
+  -->
+	<li data-button="Fim">
+		<h4>AJUDA</h4>
+		<p>
+			Utilize o botão <span class="fa fa-question-circle fa-2x"></span>
+			sempre que estiver em uma página nova e que tenha dúvidas!
+		</p>
+	</li>
+</ol>
+{% endblock %} {% endblock %}

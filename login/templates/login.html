@@ -1,0 +1,64 @@
+{% extends 'base.html' %} 
+{% block conteudo %} 
+<div class="row panel">
+	{% if not user.is_authenticated %}
+	<div class="large-6 columns">
+		<h3>Login</h3>
+		<form action="{% url 'login:logar' %}" method="POST">
+			{% csrf_token %} <label> Usuário: <input type="text"
+				name="username" required="required">
+			</label> <label> Senha: <input type="password" name="password"
+				required="required">
+			</label> <button id="userLogin" type="submit" class="expand">Logar</button>
+		</form>
+	</div>
+	<div class="large-6 columns">
+		<h3>Registro</h3>
+		<!-- 
+		<p>Temporariamente Indisponível.</p>
+		-->
+		<form action="{% url 'login:registrar' %}" method="POST">
+			{% csrf_token %} <label> Nome: <input type="text"
+				name="first_name" required="required">
+			</label> <label> Sobrenome: <input type="text" name="last_name">
+			</label> <label> Email: <input type="email" name="email"
+				required="required">
+			</label> <label> Nome de Usuário: <input type="text" name="username"
+				required="required">
+			</label> <label> Senha: <input type="password" name="password"
+				required="required">
+			</label> <button type="submit" class="expand" id="registro">Cadastrar</button>
+		</form>
+	</div>
+	{% else %}
+	<div class="large-6 columns">
+		<h3>Perfil</h3>
+		Olá {{user.username}}, bem vindo.<br>
+		<a href="{% url 'login:logout' %}">Logout</a>
+	</div>
+	{% endif %}
+</div> 
+{% endblock %}
+
+{% block joyride %} 
+<ol class="joyride-list" data-joyride>
+  <li data-id="userLogin" data-text="Próximo" data-options="tip_location: bottom">
+    <h4>Login</h4>
+    <p>Entre com seu nome de usuário e senha e clique neste botão para entrar no sistema.</p>
+  </li>
+  <li data-id="registro" data-class="custom so-awesome" data-options="tip_location: top" data-text="Próximo" data-prev-text="Anterior">
+    <h4>Registro</h4>
+    <p>Para se registrar entre os os dados pedidos em clique neste botão.</p>
+  </li>
+  <!-- 
+  <li data-id="feed" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>FEED</h4>
+    <p>Novidades do mundo! Esse módulo é ajustavel, basta você acessar seu DASHBOARD!</p>
+  </li>
+  -->
+  <li data-button="Fim"  data-prev-text="Anterior">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}

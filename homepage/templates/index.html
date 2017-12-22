@@ -1,0 +1,134 @@
+{% load staticfiles %}
+<!doctype html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html class="no-js" lang="en"
+	data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Language" content="pt-br" />
+<meta name="ROBOTS" content="ALL" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="keywords"
+	content="ADA, Libras, Mecanismo de tradução, tradução, aprendizagem, lúdico, Linguagem de sinais" />
+<meta name="rights" content="FAPES" />
+<meta name="author" content="Luiz Fernando Reinoso" />
+<meta name="description"
+	content="MVLIVRAS é um ambiente virtual de aprendizagem para surdos e ouvintes aprenderem de forma colaborativa a libras/português." />
+<meta name="generator"
+	content="Django - Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.  - Version 1.6.5" />
+<meta property="og:site_name" content="MVLIBRAS">
+
+<meta http-equiv=’cache-control’ content=’no-cache’>
+<meta http-equiv=’expires’ content=’0′>
+<meta http-equiv=’pragma’ content=’no-cache’>
+
+<link rel="stylesheet" href="{% static 'css/foundation.css' %}" />
+<link rel="stylesheet" href="{% static 'css/banner-theme.css' %}" />
+<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+<script src="{% static 'js/vendor/modernizr.js' %}"></script>
+<script src="{% static 'js/vendor/jquery.js' %}"></script>
+</head>
+<body>
+	<link href='http://fonts.googleapis.com/css?family=Raleway'
+		rel='stylesheet' type='text/css'>
+	<section class="hero">
+		<div class="row">
+			<div class="large-12 columns">
+				<div class="main-wrapper">
+					<h1>CAP->MVLIBRAS</h1>
+					<h3>Plataforma de ensino LIBRAS</h3>
+					<hr>
+					<div class="row">
+						<div class="large-6 columns large-centered">
+							<ul class="button-group even-4">
+								<li><a href="/" class="button">Principal</a></li>
+								<li><a href="http://www.academia.edu/17583442/MVLIBRAS_ambiente_digital_para_comunidades_de_aprendizagem_com_recursos_inclusivos_para_surdos" class="button">Sobre</a></li>
+								<li><a href="{% url 'login:login' %}" class="button button_acesso round">Acesso</a></li>
+								<li><a href="https://br.linkedin.com/in/luizreinoso" class="button">Contato</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="large-6 columns about-box">
+				<div class="black-box">
+					<h2>Podemos aprender a falar com as mãos.</h2>
+					<p style="text-align: justify;">Faça parte de nossa comunidade e colabore utilizando um sistema
+						colaborativo, onde você pode flexibilizar suas aulas e aprender ou ensinar
+						LIBRAS de forma interativa.
+					<p>Interessado em fazer parte da inclusão?</p>
+					<a href="{% url 'login:login' %}" class="secondary small button">Cadastre-se agora →</a>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="hero-content">
+		<div class="row">
+			<div class="large-8 columns about-content" style="text-align: justify;">
+				<h4>CAP->MVLIBRAS</h4>
+				<p>O CAP->MVLIBRAS é uma plataforma de ensino LIBRAS, onde alunos e professores interpretes 
+				através de atividades individuais e também colaborativas, corroboram para a aprendizagem 
+				de LIBRAS. O sistema é capaz de traduzir palavras do Português escrito para LIBRAS 
+				gesticulada.</p>
+				<p>O sistema traz aos professores interpretes a possibilidade de trabalho cooperativo
+				onde é possível a criação e gerencamento de atividades. O projeto ainda
+				suporta o uso e difusão de Arquiteturas Pedagógicas (APs), provendo ferramental para suporte de 
+				AP's variadas possíveis de serem geradas pelos professores interpretes a seus alunos.</p>
+			</div>
+			<div class="large-4 columns">
+				<ul class="small-block-grid-2">
+					<li class="text-center"><span class="fa fa-users fa-5x"></span><br>Colaborativo</li>
+					<li class="text-center"><span class="fa fa-graduation-cap fa-5x"></span><br>Educativo</li>
+					<li class="text-center"><span class="fa fa-code fa-5x"></span><br>Open source</li>
+					<li class="text-center"><span class="fa fa-tablet fa-5x"></span><br>Responsivo</li>
+				</ul>
+			</div>
+		</div>
+	</section>
+	<!--  
+	<div class="row">
+		<div class="large-12 columns">
+			<div class="panel">
+				<div class="row">
+					<div class="large-9 columns">
+						<h4>Sistema ainda em desenvolvimento!</h4>
+						<p>Estamos trabalhando entre as 8 am - 17pm, Segunda a Sábado.</p>
+					</div>
+					<div class="large-3 columns">
+						<a href="#" class="radius button right">Contato</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	-->
+	<footer>
+		<div class="row">
+			<div class="large-6 columns">
+				<p><a href="https://opensource.org/licenses/MIT">© MIT License</a>. CAP->MVLIVRAS. <a href="https://bitbucket.org/capplataform/mvlibrasrep">GitHub</a>.</p>
+			</div>
+			<div class="large-6 columns">
+				<ul class="inline-list right">
+					<li><a href="http://www.academia.edu/17583442/MVLIBRAS_ambiente_digital_para_comunidades_de_aprendizagem_com_recursos_inclusivos_para_surdos">Sobre</a></li>
+					<li><a href="https://opensource.org/licenses/MIT">Termos de uso</a></li>
+					<li><a href="#">Politica de Privacidade</a></li>
+				</ul>
+			</div>
+		</div>
+	</footer>
+	<script src="{% static 'js/foundation.min.js' %}"></script>
+	<script>
+		$(document).foundation();
+	</script>
+	<script src="{% static 'js/vendor/jquery.js' %}"></script>
+	<script src="{% static 'js/foundation.min.js' %}"></script>
+	<script>
+		$(document).foundation();
+
+		var doc = document.documentElement;
+		doc.setAttribute('data-useragent', navigator.userAgent);
+	</script>
+</body>
+</html>

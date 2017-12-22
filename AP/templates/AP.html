@@ -1,0 +1,134 @@
+{% extends 'base.html' %} 
+{% load staticfiles %}
+
+{% block title %} {{ap.nome}} {% endblock %}
+
+{% block css %}
+<style>
+.buttonSeta{
+	display: block;
+	padding: 10px;
+	width: 80px;
+	height: 140px;
+	display: block;
+	line-height: 62px;
+	font-size: 18px;
+	text-align: center;
+	z-index: 999;
+	background-clip: padding-box;
+	top: 50%;
+	margin: 0px;
+	position: fixed;
+	transform: translateY(-50%);
+}
+
+.PreviousSeta{
+	float: left;
+	left: 0px;
+}
+
+.NextSeta{
+	float: right;
+	right: 0px;
+}
+
+.MessagemSeta{
+	text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+	function proximoSeta(num){
+		$('.NextSeta').prop("disabled",true);
+		console.log('NextDesabilitado');
+		
+		try{
+			if (saveLOG()){
+				window.location = "/aps/{{ap.id}}/" + num + "/apordem/";
+			}else{
+				$('.NextSeta').prop("disabled",false);
+			}
+		}catch(e){
+			console.log('Not Log');
+			window.location = "/aps/{{ap.id}}/" + num + "/apordem/";
+		}
+		
+		return false;
+	}
+	
+	function anteriorSeta(num){
+		$('.PreviousSeta').prop("disabled",true);
+		console.log('previousDesabilitado');
+		try{
+			if (saveLOG()){
+				window.location = "/aps/{{ap.id}}/" + num + "/apordem/";
+			}else{
+				$('.PreviousSeta').prop("disabled",false);
+			}
+		}catch(e){
+			console.log('Not Log');
+			window.location = "/aps/{{ap.id}}/" + num + "/apordem/";
+		}
+		return false;
+	}
+</script>
+{% endblock %}
+
+{% block conteudo %}
+{% if indexR > 0 %}
+<button onclick="anteriorSeta({{indexR}}-1);" class="buttonSeta PreviousSeta" type="button">
+	<i class="fa fa-chevron-left fa-2x"></i>
+	<div class="MessagemSeta">Anterior</div>
+</button>
+{% endif %}
+
+{% if numRecursos > 0 and indexR < numRecursos %}
+<button onclick="proximoSeta({{indexR}}+1);" class="buttonSeta NextSeta">
+	<i class="fa fa-chevron-right fa-2x"></i>
+	<div class="MessagemSeta">Próximo</div>
+</button>
+{% endif %}
+<div class="row">
+	<h3>{{ap.nome}}</h3>
+	<details>{{ap.descricao}}</details><br>
+	<br>
+	<div>
+		{% if recurso.recurso == 1 %}
+			<!-- Recurso de busca -->
+			{% include "APbusca.html" %}
+		{% endif %}
+		{% if recurso.recurso == 2 %}
+			<!-- Recurso de Captura -->
+			{% include "APcaptura.html" %}
+		{% endif %}
+		{% if recurso.recurso == 3 %}
+			<!-- Recurso de datilologia -->
+			{% include "APdatilologia.html" %}
+		{% endif %}
+		{% if recurso.recurso == 4 %}
+			<!-- Recurso de interpretação de texto para sinal -->
+			{% include "APinterpretador.html" %}
+		{% endif %}
+		{% if recurso.recurso == 5 %}
+			<!-- Recurso de anexação de arquivos -->
+			{% include "APanexos.html" %}
+		{% endif %}
+		{% if recurso.recurso == 6 %}
+			<!-- Recurso de edição HTML -->
+			{% include "APhtml.html" %}
+		{% endif %}
+		{% if recurso.recurso == 7 %}
+			<!-- Recurso de Captura se sentenças e Frases -->
+			{% include "APCapturaLonga.html" %}
+		{% endif %}
+		{% if recurso.recurso == 8 %}
+			<!-- Recurso de tradução e interpretação -->
+			{% include "APdatilologiaVisual.html" %}
+		{% endif %}
+	</div>
+</div>
+{% block joyride %}
+
+{% endblock %} {% endblock %}

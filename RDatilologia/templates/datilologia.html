@@ -1,0 +1,64 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+	/**
+		Conversosr de portugês para DATILOLOGIA
+		Fonte utilizada: Libras_Kidmais01.tft
+	**/
+	function startAppDatilologia(){
+		RDatilologiaportuguestexto.document.designMode = 'On';
+		RDatilologiaportuguestexto.document.addEventListener("keyup", converter_libras, false);
+	}
+	
+	// Função que passa as letras e palavras digitadas para o tradutor
+	// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+	function converter_libras(evt) {
+		RDatilologialibrastexto.document.body.innerHTML = retira_acentos(
+			RDatilologiaportuguestexto.document.body.innerHTML.replace('?', '')
+		);
+	}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Datilologia
+{% endblock %}
+
+{% block recurso %}
+<div class="row panel radius">
+	<div class="large-6 columns">
+		<h3 id="editor">Editor</h3>
+		<iframe class="editor" style="width: 100%" id="RDatilologiaportuguestexto" name="RDatilologiaportuguestexto">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+	</div>
+	<div class="large-6 columns">
+		<h3 id="tradutor">Datilologia</h3>
+		<iframe class="editor" style="width: 100%" id="RDatilologialibrastexto" name="RDatilologialibrastexto" 
+			src="{% url 'rdatilologia:TradutorDatilologia' %}">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+	</div>
+</div>
+
+<script>
+
+</script>
+{% endblock %}
+
+{% block configuracao %}
+<form id="RDatilologia" name="RDatilologia" class="row">{% csrf_token %}
+	<label> Criar LOG? (Gravar o que o aluno digitar ao salvar a atividade?)
+		<div class="switch">
+		  <input id="RDatilologiaLog" name="RDatilologiaLog" type="checkbox" checked="checked">
+		  <label for="RDatilologiaLog"></label>
+		</div> 
+	</label>
+</form>
+{% endblock %}
+
+{% block dados %}
+Dados de LOG
+{% endblock %}

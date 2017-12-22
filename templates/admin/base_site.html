@@ -1,0 +1,33 @@
+{% extends 'admin/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Cup Pixel Studios' %}{% endblock %}
+
+{% block branding %}
+<script src="//tinymce.cachefly.net/4.2/tinymce.min.js"></script>
+<script type="text/javascript">
+tinymce.init({
+    selector: "textarea",
+    plugins: [
+        "advlist autolink lists link image charmap print preview anchor",
+        "searchreplace visualblocks code fullscreen",
+        "insertdatetime media table contextmenu paste imagetools",
+        "table,contextmenu,paste,-externalplugin"
+    ],
+    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+});
+</script>
+
+
+
+<h1 id="site-name"><img src="{% static "media/logo.png" %}" height="40" /></h1>
+{% endblock %}
+
+{% block nav-global %} <a style="margin: 10px;" href="/" target="_new">ir para o site</a>{% endblock %}
+
+{% block footer %}
+<div id="footer" style="text-align: center; padding: 10px; color: white;">
+<span>Cup Pixel Studio - 2016</span>
+</div>
+{% endblock %}

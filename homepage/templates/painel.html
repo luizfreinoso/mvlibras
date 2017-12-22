@@ -1,0 +1,63 @@
+{% extends 'base.html' %} 
+{% block conteudo %}
+<div class="row">
+	<h2>Arquiteturas Pedagógicas 
+		<span data-tooltip aria-haspopup="true" 
+		class="has-tip" title="Arquiteturas pedagógicas (AP), são suportes estruturantes para a aprendizagem. Aqui temos as principais APs levantadas e suas devidas ferramentas.">
+			<i class="fa fa-info-circle"></i>
+		</span>
+	</h2>
+	<details>Menu de seleção de Tecnologias digitais para suporte a arquiteturas pedagógicas para aprendizagem de LIBRAS.</details>
+	<br><br>
+</div>
+
+<div id="ap" class="row">
+	<div class="row">
+	{% for ap in aps %}
+	{% if forloop.counter0|divisibleby:3 %}
+	</div>
+	<div class="row">
+	{% endif %}
+	<div class="large-4 columns">
+		<a id="atividade" href="{% url 'aps:ap' ap.id %}" class="button expand">{{ap.sigla}}</a>
+		<details>
+			<center>
+				<span data-tooltip aria-haspopup="true" 
+					class="has-tip" 
+					title="{{ap.descricao}}">
+						<i class="fa fa-info-circle"></i>
+				</span>
+			{{ap.nome}}
+			</center>
+		</details>
+		<br>
+	</div>
+	{% if forloop.last %}
+	</div>
+	{% endif %}
+	{% endfor %}
+</div>
+<br><br>
+{% block joyride %} 
+<ol class="joyride-list" data-joyride>
+  <li data-id="ap" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: bottom">
+    <h4>Arquiteturas Pedagógicas</h4>
+    <p>Esse é nosso painel de tecnologias digitais que visam atender as arquiteturas pedagógicas propostas.</p>
+  </li>
+  <li data-id="atividade" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Atividade</h4>
+    <p>Para usar um recurso de uma AP clique no botão e boa aula!</p>
+  </li>
+  <!-- 
+  <li data-id="feed" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>FEED</h4>
+    <p>Novidades do mundo! Esse módulo é ajustavel, basta você acessar seu DASHBOARD!</p>
+  </li>
+  -->
+  <li data-prev-text="Anterior" data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}

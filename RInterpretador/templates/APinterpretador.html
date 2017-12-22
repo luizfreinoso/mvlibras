@@ -1,0 +1,258 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+function startAppInterpretador() {
+	{% for dado in dadosAP %}
+	{% if dado.user == user %}
+		RInterpretadorportuguestexto.document.body.innerHTML  = '{{dado.value|safe}}';
+	{% endif %}
+	{% endfor %}
+	
+	RInterpretadorportuguestexto.document.designMode = 'On';
+	//RInterpretadorportuguestexto.document.execCommand('formatblock',false,"P");
+	
+	$("#RInterpretadorportuguestexto").contents().click(function(e) {
+		e.preventDefault();
+		// wrap words in spans
+	    $("#RInterpretadorportuguestexto").contents().find('p').each(function () {
+	        var $this = $(this);
+	        var arrayWords = replaceNbsps($this.text()).split(" ");
+	        console.log($this.text());
+	        var novoTexto = "";
+	        arrayWords.forEach(function (entry) {
+	            novoTexto += "<span data-palavra='" +
+	            		retira_acentos(entry.replace(".","").replace("?", "")) 
+	            		+ "'>" + entry + "</span> ";
+	        });
+	        $this.html(novoTexto);
+	    });
+	    
+	    RInterpretadorportuguestexto.document.execCommand('formatblock',false,"P");
+
+	    // bind to each span
+	    $("#RInterpretadorportuguestexto").contents().find('p span').hover(
+
+	    function () {
+	        $(this).css('background-color', '#ffff66').text();
+	    },
+
+	    function () {
+	        $(this).css('background-color', '');
+	    });
+	    
+	    // alert to each span
+	    $("#RInterpretadorportuguestexto").contents().find('p span').click(
+
+	    function () {
+	    	var slug = $(this).data('palavra').toLowerCase();
+	    	try{
+	    		gerarVideo(slug);
+	    	}catch(e){
+	    		console.log('none');
+	    	}
+	    });
+	});
+}
+	
+function gerarVideo(slug){
+	//definições
+	$videoP = $("#RInterpretadorvideoplayer")[0]; //principal
+    var e = document.getElementById("RInterpretadordicionarios");
+    var dic = e.options[e.selectedIndex].value;
+    console.log(slug + ' -> ' + dic);
+    src = srcDefine(retira_stop_words(slug), dic);
+    
+    document.getElementById('RInterpretadorpalavraNome').value = retira_stop_words(slug).toUpperCase();
+    
+    document.getElementById('RInterpretadorvideoexecucao').src = src;
+    
+    $videoP.loop = true;
+    $videoP.load();
+    console.log($videoP);
+}
+
+// Nesta função, o sistema irá trazer o video do usuário caso seja uma palavra PESSOAL.
+// A do grupo que o usuário pertence ou do INES
+function srcDefine(slug, dic){
+	var auxSrc = '';
+	
+	switch(dic){
+  	  	//No pessoal precisamos pedir ao sistema o caminho!!!
+		case '0':
+			auxSrc = "http://www.acessibilidadebrasil.org.br/libras/filme/" + slug + "Sm_Prog001.swf";
+			break;
+		case '1':
+			//auxSrc = "/mvlibras/static/media/ines/" + slug + "Sm_Prog001.mp4";
+			auxSrc = "/static/media/ines/" + slug + "Sm_Prog001.mp4";
+			document.getElementById("RInterpretadorgrupoNome").value = '';
+			break;
+		case '2':
+			ajax_user_video(slug, dic);
+			auxSrc = userPath;
+			break;
+		case '3':
+			//auxSrc = "/mvlibras/static/media/grupo/" + slug;
+			ajax_user_video(slug, dic);
+			auxSrc = userPath;
+			break;
+		default:
+			auxSrc = "nada";
+			break;
+	}
+	console.log("Palavra-> " + slug + " - Dicionário -> " + dic + " - Caminho:" + auxSrc);
+	return auxSrc;
+}
+  
+function ajax_user_video(slug, dic){
+	console.log('Buscando via AJAX');
+	$.ajax({
+		url: '/rinterpretador/'+ slug + '/' + dic + '/busca_video/',
+		//url: '/mvlibras/apaigl/'+ slug +'/busca_video/',
+		type: "GET",
+		cache: false,
+		async: false,
+        contentType: false,
+        processData: false,
+		success: function(data) {
+			if(data['erro']){
+				userPath = 'erro';
+			}else{
+				userPath = "/static/" + data['caminho'];
+				document.getElementById("RInterpretadorgrupoNome").value = data['grupo'];
+				document.getElementById("RInterpretadorimagemPalavra").src = "/static/" + data['imagem'];
+			}
+			console.log(userPath);
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log(errorMessage); // Optional
+	          userPath = "";
+		     }
+		});
+	return false;
+}
+
+function SelecionarPalavraDicionario(){
+	var slug = document.getElementById('RInterpretadorpalavraNome').value.toLowerCase();
+	gerarVideo(slug);
+}
+
+function saveLOG(){
+	id = {{recurso.id}}
+	var formData = new FormData($('#RInterpretadorportuguestextoFORM')[0]);
+	try{
+		if ($('#RInterpretadorportuguestexto').contents().find("body").html() != ""){
+			formData.append('log', $('#RInterpretadorportuguestexto').contents().find("body").html());
+		}else{
+			alert("Escreva para gravar");
+			return false;
+		}
+	}catch(err){
+		return false;
+	}
+	$.ajax({
+		url: '/aps/' + id +'/salvarLog/',
+		//url: '/mvlibras/apaigl/'+ slug +'/busca_video/',
+		type: "POST",
+		data: formData,
+		cache: false,
+		async: false,
+        contentType: false,
+        processData: false,
+		success: function(data) {
+			console.log('Log salvo');
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log('Log erro');
+		     }
+		});
+	return true;
+}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Interpretação de entradas para sinais
+{% endblock %}
+
+{% block recurso %}
+<div class="">
+	<div class="row">
+		<div class="large-8 columns">
+			<form name="RInterpretadorportuguestextoFORM" id="RInterpretadorportuguestextoFORM">{% csrf_token %}
+			<iframe name="RInterpretadorportuguestexto" id="RInterpretadorportuguestexto" width="100%" class="editor"></iframe>
+			</form>
+		</div>
+		<div class="large-4 columns">
+			<div class="row">
+				<div class="large-6 small-6 columns">
+					<video width="100%" autoplay="autoplay" loop="loop" id="RInterpretadorvideoplayer">
+						<source id="RInterpretadorvideoexecucao"
+							src=""
+							type="video/mp4">
+						Your browser does not support the video tag.
+					</video>
+				</div>
+				<div class="large-6 small-6 columns">
+					<img id="RInterpretadorimagemPalavra" src="http://placehold.it/120?text=Imagem">
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-12 columns">
+					<label>Palavra <input id="RInterpretadorpalavraNome" type="text"
+						disabled="disabled" value="Palavra selecionada" />
+					</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-6 columns">
+					<label>Dicionário <select onchange="SelecionarPalavraDicionario();" id="RInterpretadordicionarios">
+							<option value="1">INES</option>
+							<option value="2">Pessoal</option>
+							<option value="3">Local</option>
+					</select>
+					</label>
+				</div>
+				<div class="large-6 columns">
+					<label>Grupo <input type="text" disabled="disabled" id="RInterpretadorgrupoNome"
+						value="" />
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{%  block joyride %}
+<ol class="joyride-list" data-joyride>
+  <li data-id="RInterpretadorportuguestexto" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: top">
+    <h4>Editor em Português</h4>
+    <p>Escreva um texto normalmente ou em LIBRAS sinalizada, de acordo com o seu estudo. Clique nas palavras do texto para o interpretador traduzir.</p>
+  </li>
+  <li data-id="RInterpretadorvideoplayer" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Video</h4>
+    <p>A tradução das palavras encontradas aparecerá aqui.</p>
+  </li>
+  <li data-id="RInterpretadorpalavraNome" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Palavra</h4>
+    <p>A palavra selecionada aparecerá aqui.</p>
+  </li>
+  <li data-id="RInterpretadordicionarios" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Dicionário</h4>
+    <p>O dicionário de busca para a palavra está indicado aqui. Você pode alterá-lo.</p>
+  </li>
+  <li data-id="RInterpretadorgrupoNome" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Grupo</h4>
+    <p>O grupo que a palavra pertence aparecerá aqui.</p>
+  </li>
+  <li data-prev-text="Anterior" data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

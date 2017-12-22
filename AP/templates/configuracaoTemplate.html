@@ -1,0 +1,60 @@
+{% load staticfiles %}
+
+
+{% block scripts %}
+
+{% endblock %}
+
+<div class="row ui-state-default">
+	<!-- <span class="fa fa-sort fa-2x right-move"></span> -->
+	<label class="right-move"> ORDEM
+		<input name="recursoordem{{recurso.recurso}}" id="recursoordem{{recurso.recurso}}" value="{{recurso.ordem}}" style="width: 20px;">
+	</label>
+	<div class="large-12 columns">
+	{% block recursonome %}
+	
+	{% endblock %}
+	<div class="row" id="accordion{{recurso.recurso}}" data-idrl="{{recurso.id}}">
+		<h3>Preview do recurso</h3>
+		<div>
+			{% block recurso %}
+				
+			{% endblock %}
+		</div>
+		<h3>Configurações</h3>
+		<div>
+			{% block configuracao %}
+			
+			{% endblock %}
+		</div>
+	</div>
+	</div>
+	<script type="text/javascript">
+		$(function() {
+		  $( "#accordion{{recurso.recurso}}" ).accordion({
+			  collapsible: true,
+			  active: false
+		  });
+		});
+		
+		window.onload = function(){
+			try{
+				startAppDatilologia();
+			}catch(e){
+				console.log('Datilologia off');
+			}
+			
+			try{
+				startAppInterpretador();
+			}catch(e){
+				console.log('Interpretador off');
+			}
+			
+			try{
+				startAppHTML();
+			}catch(e){
+				console.log('HTML off');
+			}
+		};
+	</script>
+</div>

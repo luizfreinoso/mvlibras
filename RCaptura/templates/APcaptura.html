@@ -1,0 +1,372 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+{% load ap_extras %}
+{% block scripts %} 
+<style>
+.ListMeusVideos{
+	overflow: auto;
+	overflow-y: hidden;
+	-ms-overflow-y: hidden;
+	white-space: nowrap;
+	max-height: 400px;
+}
+
+.ListMeusVideosItem{
+	display: inline-block;
+}
+
+.videoitem{
+	float: left;
+}
+</style>
+
+<script type="text/javascript">
+//Função que passa as letras e palavras digitadas para o tradutor
+// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+function palavra_formatada2() {
+	// Obrigamos o usuário a digitar palavras
+	$('#slugInput').val($('#slugInput').val().replace(' ', ''));
+	$('#palavra').val($('#slugInput').val());
+	// Removemos acentos e opotuações indesejadas para montar o SLUG
+	$('#slug').val(
+			retira_acentos(
+					$('#slugInput').val()
+					.replace('.', '')
+					.replace('?', '')
+			).toLowerCase()
+	);
+}
+
+function palavra_formatada3() {
+	// Obrigamos o usuário a digitar palavras
+	$('#slugInput option:selected').text($('#slugInput option:selected').text().replace(' ', ''));
+	$('#palavra').val($('#slugInput option:selected').text());
+	// Removemos acentos e opotuações indesejadas para montar o SLUG
+	$('#slug').val(
+			retira_acentos(
+					$('#slugInput option:selected').text()
+					.replace('.', '')
+					.replace('?', '')
+			).toLowerCase()
+	);
+}
+
+// Postar Video para o servidor
+function postVideoToServer() {
+	//indicadores de envio, barra de status
+	$('.meter').css( "width", "10%" );
+	$('.metertext').html("10%");
+	
+	// Criar uma objeto FormData, isso se faz nescessário por causa do Token de segurança
+	var formData = new FormData($('#formGravacaoVideo')[0]);
+	try{
+		formData.append('video', window.audioVideoRecorder.getBlob());
+		if ($('#RCapturagrupo').prop('disabled', true)){
+			formData.append('RCapturagrupo', $('#RCapturagrupo').val());
+		}
+	}catch(err){
+		alert("Grave um video! Para isso clique no botão gravar!");
+		return false;
+	}
+	//indicadores de envio, barra de status
+	$('.meter').css( "width", "30%" );
+	$('.metertext').html("30%");
+    
+	//Enviamos nosso objeto
+	
+    $.ajax({
+    	type: "POST",
+		url: "{% url 'rcaptura:salvarVideo' %}",
+		enctype: "multipart/form-data",
+		data: formData,
+		cache: false,
+        contentType: false,
+        processData: false,
+        async: false,
+		success: function(data) {
+			//indicadores de envio, barra de status
+			$('.meter').css( "width", "60%" );
+			$('.metertext').html("60%");
+			onUploadSuccess(data);
+             //$('#teste_request').html(data);
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log(errorMessage + " - " + textStatus); // Optional
+	     }
+	});
+	return false;
+}
+
+function onUploadSuccess(data) {
+	//indicadores de envio, barra de status
+	$('.meter').css( "width", "80%" );
+	$('.metertext').html("80%");
+	if(data.erro_message){
+		alert(data.erro_message);
+	}else{
+		//indicadores de envio, barra de status
+		$('.meter').css( "width", "100%" );
+		$('.metertext').html("100%");
+		if(data.palavra_pk){
+			var palavra_pk = data.palavra_pk; //validamos a palavra existente
+		}
+	}
+}
+
+function criarGrupo(){
+	$(this).defaultPrevented;
+	console.log('Criando grupo');
+	
+	if(document.getElementById('formRCapturaGrupo').elements['grupoNomeInput'].value != ""){
+		var formData = new FormData($('#formRCapturaGrupo')[0]);
+		$.ajax({
+			type: "POST",
+			url: "{% url 'rcaptura:grupo_palavra' %}",
+			enctype: "multipart/form-data",
+			data: formData,
+			cache: false,
+	        contentType: false,
+	        processData: false,
+	        async: false,
+	        success: function(data) {
+				//alert(data);
+				if (data['aceito'] == 'criado'){
+					//alimentamos nossas caixas de seleção
+					$("#RCapturagrupo").append(
+							$('<option></option>').attr("value", data['grupo_pk']).text(data['nome'])
+							);
+					$("#RCapturagrupo").val(data['grupo_pk']);
+					$("#CRCapturagrupo").append(
+							$('<option></option>').attr("value", data['grupo_pk']).text(data['nome'])
+							);
+					$("#CRCapturagrupo").val(data['grupo_pk']);
+					alert("Criado!");
+					
+				}
+			 },
+			 error: function(jqXHR, textStatus, errorMessage) {
+		          console.log(errorMessage + " - " + textStatus + " - " + jqXHR); // Optional
+			     }
+			});
+	}else{
+		alert("Insira um nome para o grupo por favor.");
+	}
+	return false;
+}
+
+function teste(){
+	if ($('#teste').prop('checked')){
+		$('#RCapturaimagem').prop( "disabled", true );
+	}else{
+		$('#RCapturaimagem').prop( "disabled", false );
+	}
+}
+</script>
+
+{% endblock %}
+
+{% block recursonome %}
+	Captura de sinais LIBRAS
+{% endblock %}
+
+{% block recurso %}
+<!-- Utilizamos a tecnologia RTC da Mozilla -->
+<script type="text/javascript" src="{% static 'js/recordRTC.js' %}"></script>
+<div class="">
+	<p>Necessita de uma webcan para gravar. Após a gravação o 
+	Download do video aparecerá aqui:<span id="download-url"></span></p>
+	<div class="">
+		<div class="large-4 columns">
+			<button onclick="replayCapturaVideo();" class="button tiny"><i class="fa fa-repeat"></i> Replay</button>
+			<video class="gravacao" width="240" height="180" autoplay="autoplay"
+				loop="loop" id="capturaTela"> Your browser does not support
+				the video tag.
+			</video>
+		</div>
+		<form class="large-8 columns" id="formGravacaoVideo">
+		{% csrf_token %}
+			<div class="row">
+				<div class="large-4 columns">
+					<input name="RCrecursoid" type="hidden" value="{{recurso.id}}">
+					{%  if config.CRCapturalistaPalavras == '' or config.CRCapturaComportamentosLivre %}
+					<label> Palavra<input id="slugInput" name="RCapturaslugInput" 
+					type="text" value="" onkeyup="palavra_formatada2();" />
+					</label>
+					{% else %}
+					<label > Palavra
+						<select id="slugInput" name="RCapturaslugInput" 
+							onchange="palavra_formatada3();" />
+							<option value="">Selecione .....</option>
+						{% for palavra in config.CRCapturalistaPalavras|split:',' %}
+							<option value="{{palavra}}">{{palavra}}</option>
+						{% endfor %}
+						</select>
+					</label>
+					{% endif %}
+					<input id="palavra" name="RCapturapalavra" type="hidden" value="" />
+					<input id="slug" name="RCapturaslug" type="hidden" value="" />
+				</div>
+				<div class="large-4 columns">
+					<label>Grupo <select name="RCapturagrupo" id="RCapturagrupo" {% if config.CRCapturagrupo != '0' %} disabled="disabled" {% endif %}>
+							{% for grupo in Dgrupos %}
+							<option value="{{grupo.id}}" {% ifequal config.CRCapturagrupo grupo.id|slugify %} selected="selected" {% endifequal %}>{{grupo.nome}}</option>
+							{% endfor %}
+					</select>
+					</label>
+				</div>
+				<div class="large-4 columns">
+					<label>Imagem <input id="RCapturaimagem" name="RCapturaimagem" type="file"
+						accept="image/*">
+						<input name="video" type="file" style="display: none;">
+					</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="large-12 columns">
+					<ul class="button-group even-2">
+						<li><a  id="start-recording" class="button"><i
+								class="fa fa-video-camera fa-2"></i> Iniciar Gravação</a></li>
+						<li><a id="stop-recording"
+								class="button secondary alert">
+								<i class="fa fa-stop fa-2"></i> Parar Gravação
+							</a></li>
+					</ul>
+				</div>
+			</div>
+		</form>
+		<div class="row">
+			<div class="large-8 columns">
+				<div class="progress success radius round">
+					<span class="meter" style="width: 0%"></span>
+				</div>
+			</div>
+			<div id="metertext" class="large-1 columns metertext">0%</div>
+			<div class="large-3 columns">
+				<a id="botaoSalvarVideo" onclick="postVideoToServer();" 
+				class="button tiny expand">Salvar o Video</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="large-12 columns ListMeusVideos" id="ListMeusVideos">
+		<h4>Meus Envios</h4>
+		{% for palavra in RCDados %}
+			{% if palavra.user == user %}
+			<div class="ListMeusVideosItem">
+				<button onclick="replayMeuVideo({{palavra.id}})" class="button tiny"><i class="fa fa-repeat"></i> Replay</button>				<video onclick="replayMeuVideo({{palavra.id}})" controls="controls" class="meuVideo{{palavra.id}} videoitem" width="240" height="180" autoplay
+					loop id="meuVideo{{palavra.id}}"> Your browser does not support
+					the video tag.
+					<source  id="meuVideo{{palavra.id}}" type="video/webm" src="{% static palavra.video %}">
+				</video>
+				{% if palavra.imagem != "media/none.png" %}
+					<img style="float: left; width: 240px; height: 180px;" alt="{{palavra.nome}}" src="{% static palavra.imagem %}">
+				{% endif %}
+				<div style="clear: both; text-align: cen">
+					<span>{{palavra.nome}}</span><br>
+					<span>por <b>{{palavra.user.first_name}} {{palavra.user.last_name}}</b></span>
+				</div>
+			</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+</div>
+{% if config.CRCapturaComportamentosPublico %}
+<div class="row">
+	<div class="large-12 columns">
+		<h4 id="enviosColegas">Envios dos colegas</h4>
+		{% for palavra in RCDados %}
+		{% if palavra.user != user %}
+		<div style="text-align: center; float: left; border: 1px solid #ccc">
+			<div style="text-align: center; float: left;">
+				<video onclick="replayMeuVideo({{palavra.id}})" controls="controls" class="meuVideo{{palavra.id}}" width="120" height="90" autoplay
+					loop id="meuVideo{{palavra.id}}"> Your browser does not support
+					the video tag.
+					<source  id="meuVideo{{palavra.id}}" type="video/webm" src="{% static palavra.video %}">
+				</video><br>
+				<button onclick="replayMeuVideo({{palavra.id}})" class="button tiny"><i class="fa fa-repeat"></i> Replay</button>
+			</div>
+			<div style="text-align: center; float: left;">
+				{% if palavra.imagem != "media/none.png" %}
+					<img style="float: left; width: 120px; height: 90px;" alt="{{palavra.nome}}" src="{% static palavra.imagem %}">
+					<br>
+				{% endif %}
+				<span>{{palavra.nome}}</span><br>
+				<span>por <b>{{palavra.user.first_name}}</b></span>
+			</div>
+		</div>
+		{% endif %}
+		{% endfor %}
+		
+	</div>
+</div>
+{% endif %}
+<script type="text/javascript">
+function replayMeuVideo(id){
+	var vid = document.getElementById("meuVideo"+id);
+	vid.loop = true;
+	vid.load();
+}
+
+function replayCapturaVideo(){
+	var vid = document.getElementById("capturaTela");
+	vid.loop = true;
+	vid.load();
+}
+</script>
+<!-- Nossa definições para a captura de video desta página -->
+<script type="text/javascript" src="{% static 'js/captura.js' %}"></script>
+{%  block joyride %}
+<ol class="joyride-list" data-joyride>
+  <li data-id="capturaTela" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: top">
+    <h4>Captura de Video</h4>
+    <p>Para gravar seu computador precisa de uma camera e dar acesso a ela pelo Browser.</p>
+  </li>
+  <li data-id="slugInput" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Palavra</h4>
+    <p>Você precisa digitar ou selelcionar uma palavra para gravar, de acordo com as configurações do seu professor.</p>
+  </li>
+  <li data-id="RCapturagrupo" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Grupo</h4>
+    <p>A organização de palavras por grupo nos ajuda a melhor nos orientarmos nas futuras buscas e usos de palavras em contextos de aula diferentes. 
+    Selecione de acordo com a palavra. Seu professor pode TRAVAR um grupo, impedindo sua mudança, essa configiração vai de acordo com o que é pedido em aula.</p>
+  </li>
+  <li data-id="RCapturaimagem" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Imagem</h4>
+    <p>Você pode  anexar uma imagem juntamente com o envio da palavra, assim os ususários podem ter uma referência do que foi capturado.</p>
+  </li>
+  <li data-id="start-recording" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:top; tip_animation:fade">
+    <h4>Iniciar</h4>
+    <p>Ao clicar neste botão ele irá pedir acesso a camera, ao aceitar ele iniciará a gravação imediatamente!</p>
+  </li>
+  <li data-id="stop-recording" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:top; tip_animation:fade">
+    <h4>Parar</h4>
+    <p>Este botão para a gravação a qualquer momento apos clicar no botão 'INICIAR'.</p>
+  </li>
+  <li data-id="botaoSalvarVideo" data-prev-text="Anterior" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Salvar video</h4>
+    <p>Você poderá gravar várias vezes até se sentir satisfeito com a captura. Quando estiver do jeito que você quer, basta envia-la.</p>
+  </li>
+  <li data-id="metertext" data-prev-text="Anterior" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Barra de envio</h4>
+    <p>Para o envio ser prefeito a barra deve chegar a 100%! Caso ocorra algum erro o mesmo aparecerá em TELA.</p>
+  </li>
+  <li data-id="ListMeusVideos" data-prev-text="Anterior" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Meus Envios</h4>
+    <p>Após processados os seus videos enviados aparecem na lista abaixo!</p>
+  </li>
+  <li data-id="enviosColegas" data-prev-text="Anterior" data-button="Próximo" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Envio dos colegas</h4>
+    <p>Aqui temos os envios de todos os outros colegas para a atividade, as mesmas só aparecem se o professor permitir.</p>
+  </li>
+  <li data-prev-text="Anterior" data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>PRONTO!!!!!! Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+<script type="text/javascript">
+	/**
+		Conversosr de portugês para DATILOLOGIA
+		Fonte utilizada: Libras_Kidmais01.tft
+	**/
+	function startAppDatilologia(){
+		{% for dado in dadosAP %}
+			{% if dado.user == user %}
+			RDatilologiaVisualportuguestexto.document.body.innerHTML  = '{{dado.value|safe}}';
+			{% endif %}
+		{% endfor %}
+		RDatilologiaVisualportuguestexto.document.designMode = 'On';
+	}
+
+function saveLOG(){
+	id = {{recurso.id}}
+	var formData = new FormData($('#RDatilologiaVisualportuguestextoFORM')[0]);
+	try{
+		if ($('#RDatilologiaVisualportuguestexto').contents().find("body").html() != ""){
+			formData.append('log', $('#RDatilologiaVisualportuguestexto').contents().find("body").html());
+		}else{
+			alert("Escreva para gravar");
+			return false;
+		}
+	}catch(err){
+		return false;
+	}
+	$.ajax({
+		url: '/aps/' + id +'/salvarLog/',
+		//url: '/mvlibras/apaigl/'+ slug +'/busca_video/',
+		type: "POST",
+		data: formData,
+		cache: false,
+		async: false,
+        contentType: false,
+        processData: false,
+		success: function(data) {
+			console.log('Log salvo');
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log('Log erro');
+		     }
+		});
+	return true;
+}
+
+function saveLOGBtn(){
+	id = {{recurso.id}}
+	var formData = new FormData($('#RDatilologiaVisualportuguestextoFORM')[0]);
+	try{
+		if ($('#RDatilologiaVisualportuguestexto').contents().find("body").html() != ""){
+			formData.append('log', $('#RDatilologiaVisualportuguestexto').contents().find("body").html());
+		}else{
+			alert("Escreva para gravar");
+			return false;
+		}
+	}catch(err){
+		return false;
+	}
+	$.ajax({
+		url: '/aps/' + id +'/salvarLog/',
+		//url: '/mvlibras/apaigl/'+ slug +'/busca_video/',
+		type: "POST",
+		data: formData,
+		cache: false,
+		async: false,
+        contentType: false,
+        processData: false,
+		success: function(data) {
+			console.log('Log salvo');
+			alert('Resposta Enviada!');
+		 },
+		 error: function(jqXHR, textStatus, errorMessage) {
+	          console.log('Log erro');
+		     }
+		});
+	return true;
+}
+
+function replayCapturaVideoAPDatilologia(){
+	var vid = document.getElementById("APDatilologiaViasualTela");
+	vid.loop = true;
+	vid.load();
+}
+</script>
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Interpretação Visual
+{% endblock %}
+
+{% block recurso %}
+<div class="">
+	<div class="large-6 columns">
+		<h3 id="editor">Escreva a Tradução</h3>
+		<form name="RDatilologiaVisualportuguestextoFORM" id="RDatilologiaVisualportuguestextoFORM">{% csrf_token %}
+		<iframe class="editor" style="width: 100%" id="RDatilologiaVisualportuguestexto" name="RDatilologiaVisualportuguestexto">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+		</form>
+		<button class="button" type="button expand" onclick="saveLOGBtn();">Enviar Resposta</button>
+	</div>
+	<div class="large-6 columns">
+		<h3 id="videoDatilologia">Video para Interpretação</h3>
+		<video id="APDatilologiaViasualTela" onclick="replayCapturaVideoAPDatilologia()"
+		src="{% static config.videoFile %}" width="240" height="180" autoplay="autoplay" loop="loop"></video>
+		<button class="button tiny" onclick="replayCapturaVideoAPDatilologia()">Replay</button>
+	</div>
+</div>
+
+{%  block joyride %}
+<ol class="joyride-list" data-joyride>
+  <li data-id="RDatilologiaVisualportuguestexto" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: top">
+    <h4>Tradução em Português</h4>
+    <p>Traduza o que é mostrado no video por extenso.</p>
+  </li>
+  <li data-id="videoDatilologia" data-button="Próximo" data-prev-text="Anterior" data-options="tip_location:bottom; tip_animation:fade">
+    <h4>Video</h4>
+    <p>Video a ser interpretado, sua tradução deve ser escrita no campo <b>Tradução</b>.</p>
+  </li>
+  <li data-prev-text="Anterior" data-button="Fim">
+    <h4>AJUDA</h4>
+    <p>Utilize o botão <span class="fa fa-question-circle fa-2x"></span> sempre que estiver em uma página nova e que tenha dúvidas!</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}
+
+{% block dados %}
+{% for group in user.groups.all %}
+    {% if group.name == 'professor' %}
+	<div class="row">
+		<div class="large-12 columns">
+		<h3>Respostas dos alunos</h3>
+		<table width="100%">
+		  <thead>
+		    <tr>
+		      <th width="20%">Usuário</th>
+		      <th width="20%">Nome</th>
+		      <th width="60%">Resposta</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    {% for dados in dadosAP %}
+		    <tr>
+		      <td>{{dados.user.username}}</td>
+		      <td>{{dados.user.first_name}} {{dados.user.last_name}}</td>
+		      <td>{{dados.value|safe}}</td>
+		    </tr>
+		    {% endfor %}
+		  </tbody>
+		 </table>
+		</div>
+	</div>
+	{% endif %}
+{% endfor %}
+
+{% endblock %}

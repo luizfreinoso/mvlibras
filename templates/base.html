@@ -1,0 +1,131 @@
+{% load staticfiles %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Language" content="pt-br" />
+<meta name="ROBOTS" content="ALL" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="keywords"
+	content="ADA, Libras, Mecanismo de tradução, tradução, aprendizagem, lúdico, Linguagem de sinais" />
+<meta name="rights" content="FAPES" />
+<meta name="author" content="Luiz Fernando Reinoso" />
+<meta name="description"
+	content="MVLIBRAS é um ambiente virtual de aprendizagem para surdos e ouvintes aprenderem de forma colaborativa a libras/português." />
+<meta name="generator"
+	content="Django - Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.  - Version 1.6.5" />
+<meta property="og:site_name" content="MVLIBRAS">
+
+<meta http-equiv=’cache-control’ content=’no-cache’>
+<meta http-equiv=’expires’ content=’0′>
+<meta http-equiv=’pragma’ content=’no-cache’>
+<meta http-equiv="cache-control" content="max-age=0" />
+<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+
+<link rel="stylesheet" href="{% static 'css/foundation.css' %}" />
+<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+
+{% block css %}
+
+{% endblock %}
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+
+<script src="{% static 'js/vendor/modernizr.js' %}"></script>
+<script src="{% static 'js/vendor/jquery.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.js' %}"></script>
+<script src="{% static 'js/uso_global.js' %}"></script>
+
+{% block scripts %}
+
+{% endblock %}
+
+
+<!--<link rel="shortcut icon" href="{% static "img/bateriaicon_256px.ico" %}">-->
+<title>CAP-MVLIBRAS - {% block title %} Dashboard {% endblock %}</title>
+
+</head>
+
+<body>
+
+	<nav class="top-bar" data-topbar>
+		<ul class="title-area">
+
+			<li class="name">
+				<h1>
+					<a href="/"> CAP->MVLIBRAS </a>
+				</h1>
+			</li>
+			<li class="toggle-topbar menu-icon"><a href="#"><span>menu</span></a></li>
+		</ul>
+		<section class="top-bar-section">
+
+			<ul class="right">
+				<li><a onclick="clickTour()" alt="Ajuda? Clique aqui!" title="Clique para obter ajuda na página!"
+					href="#" style="margin: 0;"><i class="fa fa-question-circle fa-2x"> Ajuda?</i>
+					</a>
+				</li>
+				{% for group in user.groups.all %}
+				    {% if group.name == 'professor' %}
+				<li class="divider"></li>
+				<li><a href="{% url 'aps:index' %}"><span
+						class="fa fa-graduation-cap"></span> Minhas APs</a></li>
+					{% endif %}
+				{% endfor %}
+				{% if user.is_authenticated %}
+				<li class="divider"></li>
+				<li><a href="{% url 'homepage:painel' %}"><span
+						class="fa fa-user"></span> Painel de APs</a></li>
+				<li><a href="{% url 'login:logout' %}" class="button alert">Sair</a></li>
+				<li class="divider"></li>
+				{% endif %}
+			</ul>
+		</section>
+	</nav>
+	{% if sucess_message %}
+	<div data-alert class="alert-box success radius">
+		{{sucess_message}}
+		<a href="#" class="close">&times;</a>
+	</div>
+	{% endif %} {% if error_message %}
+	<div data-alert class="alert-box alert radius">
+		{{error_message}}
+		<a href="#" class="close">&times;</a>
+	</div>
+	{% endif %}
+	{% block conteudo %}  {% endblock %}
+	<footer>
+		<div class="row">
+			<div class="large-6 columns">
+				<p><a href="https://opensource.org/licenses/MIT">© MIT License</a>. CAP->MVLIBRAS. <a href="https://bitbucket.org/capplataform/mvlibrasrep">GitHub</a>.</p>
+			</div>
+			<div class="large-6 columns">
+				<ul class="inline-list right">
+					<li><a href="http://www.academia.edu/17583442/MVLIBRAS_ambiente_digital_para_comunidades_de_aprendizagem_com_recursos_inclusivos_para_surdos">Sobre</a></li>
+					<li><a href="https://opensource.org/licenses/MIT">Termos de uso</a></li>
+					<li><a href="#">Politica de Privacidade</a></li>
+				</ul>
+			</div>
+		</div>
+	</footer>
+</body>
+
+{% block joyride %} 
+<!-- Conteudo  de fechamento-->
+{% endblock %}
+
+<script src="{% static 'js/foundation/foundation.topbar.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.alert.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.tab.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.dropdown.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.reveal.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.tooltip.js' %}"></script>
+<script src="{% static 'js/foundation/foundation.joyride.js' %}"></script>
+<script>
+	$(document).ready(function() { 
+		$(document).foundation();
+	});
+	function clickTour(){
+		$(document).foundation('joyride', 'start');
+	}
+</script>
+</html>

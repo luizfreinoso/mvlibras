@@ -1,0 +1,35 @@
+{% extends "APTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %}
+
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de anexação de arquivos
+{% endblock %}
+
+{% block recurso %}
+<div class="panel radius">
+<table style="width: 100%">
+ <thead>
+   <tr>
+     <th width="66%">Nome</th>
+     <th width="33%">Exluir?</th>
+   </tr>
+ </thead>
+ <tbody>
+ 	{% for item in RAnexosDados %}
+   <tr>
+     <td><a href="{% static item.anexo %}">{{item.nome}}</td>
+     <td>{{item.data_ultima_modificacao}}</td>
+   </tr>
+   {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block dados %}
+
+{% endblock %}

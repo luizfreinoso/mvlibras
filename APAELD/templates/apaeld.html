@@ -1,0 +1,78 @@
+{% extends 'base.html' %} 
+
+{% block css %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+	/**
+		Conversosr de portugês para DATILOLOGIA
+		Fonte utilizada: Libras_Kidmais01.tft
+	**/
+	
+	// iFrameOn é uma fnção reservada, utilizada em todos os Layouts,
+	// podendo ser reescrita para novas funcionalidades
+	function iFrameOn() {
+		portuguestexto.document.designMode = 'On';
+		portuguestexto.document.addEventListener("keyup", converter_libras, false);
+	}
+	
+	// Função que passa as letras e palavras digitadas para o tradutor
+	// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+	function converter_libras(evt) {
+		//portuguestexto.document.execCommand('formatblock',false,"P"); // INICIA COM PARAGRÁFO
+		librastexto.document.body.innerHTML = retira_acentos(
+				portuguestexto.document.body.innerHTML.replace('?', '')
+				);
+	}
+	
+</script>
+{% endblock %}
+
+{% block conteudo %}
+<div class="row">
+	<h2>APAELD</h2>
+	<details>
+	<span data-tooltip aria-haspopup="true" 
+		class="has-tip" 
+		title="Aqui você pode promover a aprendizagem da gesticulação da DATILOLOGIA LIBRAS
+		 e a composição de palavras com o alfabeto manual">
+			<i class="fa fa-info-circle"></i>
+	</span>
+	Arquitetura pedagógica para Aprendizagem e estudo de LIBRAS e sua DATILOLOGIA com Português
+	</details>
+	<br><br>
+</div>
+
+<div class="row panel radius">
+	<div class="large-6 columns">
+		<h3 id="editor">Editor</h3>
+		<iframe class="editor" style="width: 100%" id="portuguestexto" name="portuguestexto">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+	</div>
+	<div class="large-6 columns">
+		<h3 id="tradutor">Datilologia</h3>
+		<iframe class="editor" style="width: 100%" id="librastexto" name="librastexto" 
+			src="{% url 'apaeld:TradutorDatilologia' %}">
+		  <p>Your browser does not support iframes.</p>
+		</iframe>
+	</div>
+</div>
+
+<br><br>
+
+{% block joyride %} 
+<ol class="joyride-list" data-joyride>
+  <li data-id="editor" data-text="Próximo" data-prev-text="Anterior" data-options="tip_location: bottom">
+    <h4>Editor</h4>
+    <p>Aqui você pode digitar seu texto.</p>
+  </li>
+  <li data-id="tradutor" data-class="custom so-awesome" data-text="Fim" data-prev-text="Anterior">
+    <h4>Tradução em DATILOLOGIA</h4>
+    <p>Aqui podemos ter a tradução de suas palavras, letras e frases em DATILOLOGIA! Você não pode editar este campo.</p>
+  </li>
+</ol>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "configuracaoTemplate.html" %}
+{% load staticfiles %}
+
+{% block scripts %} 
+<script type="text/javascript">
+//IFrameON overload
+function iFrameOn(){
+	
+}
+//Função que passa as letras e palavras digitadas para o tradutor
+// retira_acentos -> Função para remover acentos encontrada no script "uso_global.js"
+function palavra_formatada() {
+	// Obrigamos o usuário a digitar palavras
+	$('#palavraDigitada').val($('#palavraDigitada').val().replace(' ', ''));
+	// Removemos acentos e opotuações indesejadas para montar o SLUG
+	$('#palavraDigitada').val(
+			retira_acentos(
+					$('#palavraDigitada').val()
+					.replace('.', '')
+					.replace('?', '')
+			).toLowerCase()
+	);
+}
+
+//ao digitar nosso usuário irá buscar palavras
+function buscarPalavras(){
+	// acima de 3 caracters fazemos a busca na base
+	// usamos o identificardor SLUG para oter todas as palavras similares
+	if($('#palavraDigitada').val().length >= 3 && $('#Rbuscadicionarios').val() != 1){ //diferente do INES
+		$.ajax({
+	    	type: "GET",
+			url: '/rbusca/' + $('#palavraDigitada').val() + '/' +
+			$('#Rbuscagrupos').val() + '/' + $('#Rbuscadicionarios').val() + '/buscarPalavra/',
+			//url: '/mvlibras/apalp/' + $('#slugInput').val() + '/buscarPalavra/',
+			data: {},
+			cache: false,
+	        contentType: false,
+	        processData: false,
+	        async: true,
+			success: function(data) {
+				if(data['mensagem']){
+					$('#itemsBusca')[0].innerHTML = data['mensagem'];
+				}
+				if(data.caminhos){
+					$('#itemsBusca')[0].innerHTML = "";
+					for(var i =0; i < data.caminhos.length; i++){
+						$('#itemsBusca')[0].innerHTML += 
+							'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+								'<source src="{% static '' %}' + data.caminhos[i].caminho + '" type="video/webm">' +
+							'</video>';
+					}
+				}
+			 },
+			 error: function(jqXHR, textStatus, errorMessage) {
+				 console.log(errorMessage + " - " + textStatus); // Optional
+		     }
+		});
+		//inserimos caso tenha no ines se for todos
+		if ($('#Rbuscadicionarios').val() == 0){
+			$('#itemsBusca')[0].innerHTML += 
+				'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+					'<source src="/static/media/ines/' + 
+					$('#palavraDigitada').val() + 
+					'Sm_Prog001.mp4" type="video/webm">' +
+				'</video>';	
+		}
+	}else{ //caso seja o INES
+		$('#itemsBusca')[0].innerHTML = "";
+		$('#itemsBusca')[0].innerHTML += 
+			'<video class="itemPalavra" width="120" height="90" autoplay="autoplay" loop="loop">' +
+				'<source src="/static/media/ines/"' + 
+				$('#palavraDigitada').val() + 
+				'"Sm_Prog001.mp4" type="video/webm">' +
+			'</video>';
+	}
+	return false;
+}
+</script>
+
+{% endblock %}
+
+{% block recursonome %}
+	Recurso de Busca
+{% endblock %}
+
+{% block recurso %}
+<div class="row panel radius">
+	<div id="encontrarPalavra" name="encontrarPalavra" class="large-4 columns">
+		<h4>Encontrar palavras</h4>
+		<label>Palavra
+			<input type="text" id="palavraDigitada" onkeyup="palavra_formatada();buscarPalavras();">
+		</label>
+	</div>
+	<div id="itemsBusca" class="large-8 columns itemsBusca" style="border: 1px solid #ccc; height: 100%">
+		Digite uma palavra para encontrar sinais correspondentes!
+	</div>
+</div>
+{% endblock %}
+
+{% block configuracao %}
+<form id="Rbusca" name="Rbusca" class="row">{% csrf_token %}
+	<div class=" large-6 columns">
+		<label>
+			Dicionários
+			<select onchange="buscarPalavras();" name="Rbuscadicionarios" id="Rbuscadicionarios">
+				<option value="0" {% ifequal configs.1.Rbuscadicionarios 0|slugify %} selected="selected" {% endifequal %}> Todos </option>
+				<option value="1" {% ifequal configs.1.Rbuscadicionarios 1|slugify %} selected="selected" {% endifequal %}> INES </option>
+				<option value="2" {% ifequal configs.1.Rbuscadicionarios 2|slugify %} selected="selected" {% endifequal %}> Pessoal </option>
+				<option value="3" {% ifequal configs.1.Rbuscadicionarios 3|slugify %} selected="selected" {% endifequal %}> Local </option>
+			</select>
+		</label>
+	</div>
+	<div class=" large-6 columns">
+		<label>
+			Grupos
+			<select onchange="buscarPalavras();" name="Rbuscagrupos" id="Rbuscagrupos">
+				<option value="0" {% ifequal configs.1.Rbuscagrupos 0|slugify %} selected="selected" {% endifequal %}> Todos </option>
+				{% for grupo in Dgrupos %}
+				<option value="{{grupo.id}}" {% ifequal configs.1.Rbuscagrupos grupo.id|slugify %} selected="selected" {% endifequal %}>{{grupo.nome}}</option>
+				{% endfor %}
+			</select>
+		</label>
+	</div>
+</form>
+{% endblock %}
+
+{% block dados %}
+Trata-se apenas de um sistema de busca
+{% endblock %}
